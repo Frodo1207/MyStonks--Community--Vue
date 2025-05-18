@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystonks 社区 - 探索Web3未来</title>
+    <style>
+        :root {
+            --bg-dark: #0b0c10;
+            --primary-color: #00ff7f;
+            --accent-color: #00c8ff;
+            --border-color: rgba(0, 255, 198, 0.2);
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(15, 46, 26, 0.8);
+            --shadow-color: rgba(0, 255, 198, 0.15);
+            --tab-active: rgba(0, 255, 198, 0.2);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 简化后的Tab栏样式 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo img {
+            height: 30px;
+            width: auto;
+        }
+
+        .connect-wallet {
+            padding: 8px 20px;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .connect-wallet:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        /* 更高的欢迎横幅样式 */
+        .welcome-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 120px 5%;
+            background: linear-gradient(135deg, var(--bg-dark) 30%, #0f2e1a);
+            border-bottom: 1px solid var(--border-color);
+            gap: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0,255,198,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .welcome-content {
+            flex: 1;
+            padding-right: 30px;
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        .welcome-content h1 {
+            font-size: 3.5em;
+            margin: 0 0 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 90%;
+        }
+
+        .welcome-image {
+            flex: 0 0 500px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            position: relative;
+            z-index: 2;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .welcome-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .welcome-image:hover img {
+            transform: scale(1.05);
+        }
+
+        /* 按钮样式 */
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn.primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+        }
+
+        .btn.outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        /* 活动中心样式 */
+        .activity-center {
+            padding: 60px 5%;
+            background: linear-gradient(180deg, var(--bg-dark), #0a130f);
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 2.2em;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        }
+
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .activity-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px var(--shadow-color);
+        }
+
+        .activity-image {
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .activity-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .activity-card:hover .activity-image img {
+            transform: scale(1.1);
+        }
+
+        .activity-info {
+            padding: 25px;
+        }
+
+        .activity-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .activity-desc {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .activity-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .activity-tag {
+            background-color: rgba(0, 255, 198, 0.1);
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .activity-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-upcoming {
+            background-color: rgba(0, 191, 255, 0.1);
+            color: #00bfff;
+        }
+
+        .status-ongoing {
+            background-color: rgba(0, 255, 127, 0.1);
+            color: var(--primary-color);
+        }
+
+        .status-ended {
+            background-color: rgba(128, 128, 128, 0.1);
+            color: #808080;
+        }
+
+        .activity-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .welcome-banner {
+                padding: 80px 5%;
+                flex-direction: column;
+                text-align: center;
+                gap: 30px;
+            }
+
+            .welcome-content {
+                padding-right: 0;
+                width: 100%;
+                max-width: 800px;
+            }
+
+            .subtitle {
+                max-width: 100%;
+                margin-bottom: 25px;
+            }
+
+            .welcome-image {
+                width: 100%;
+                max-width: 500px;
+                flex: none;
+            }
+
+            .activity-center {
+                padding: 40px 5%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 5%;
+            }
+
+            .logo {
+                font-size: 1.2em;
+            }
+
+            .logo img {
+                height: 25px;
+            }
+
+            .connect-wallet {
+                padding: 6px 15px;
+                font-size: 0.9em;
+            }
+
+            .welcome-content h1 {
+                font-size: 2.5em;
+            }
+
+            .subtitle {
+                font-size: 1.1em;
+            }
+
+            .cta-buttons {
+                justify-content: center;
+            }
+
+            .section-title {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-banner {
+                padding: 50px 5%;
+            }
+
+            .welcome-content h1 {
+                font-size: 2em;
+            }
+
+            .welcome-image {
+                border-radius: 12px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .activity-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-image {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 简化后的头部 -->
+<div class="header">
+    <div class="logo">
+        <img src="https://via.placeholder.com/30" alt="Logo">
+        <span>MyStonks</span>
+    </div>
+    <button class="connect-wallet">连接钱包</button>
+</div>
+
+<!-- 更高的欢迎横幅 -->
+<div class="welcome-banner">
+    <div class="welcome-content">
+        <h1>🚀 欢迎来到 Mystonks 社区</h1>
+        <p class="subtitle">探索Web3未来，共建去中心化世界</p>
+        <div class="cta-buttons">
+            <a href="#" class="btn primary">加入社区</a>
+            <a href="#" class="btn outline">了解更多</a>
+        </div>
+    </div>
+    <div class="welcome-image">
+        <img src="https://i.imgur.com/Yb6Td7L.png" alt="社区封面" loading="lazy">
+    </div>
+</div>
+
+<!-- 活动中心 -->
+<div class="activity-center">
+    <h2 class="section-title">社区活动</h2>
+    <div class="activity-grid">
+        <!-- 活动卡片1 -->
+        <div class="activity-card">
+            <div class="activity-image">
+                <img src="https://source.unsplash.com/random/600x400/?web3,conference" alt="Web3大会">
+            </div>
+            <div class="activity-info">
+                <h3 class="activity-title">Web3未来大会</h3>
+                <p class="activity-desc">探索Web3的最新趋势，与行业领袖面对面交流，共同探讨去中心化世界的未来。</p>
+                <div class="activity-meta">
+                    <span class="activity-tag">大会</span>
+                    <span class="activity-time">📅 2023-12-15</span>
+                    <span class="activity-status status-upcoming">未开始</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 活动卡片2 -->
+        <div class="activity-card">
+            <div class="activity-image">
+                <img src="https://source.unsplash.com/random/600x400/?blockchain,hackathon" alt="黑客松">
+            </div>
+            <div class="activity-info">
+                <h3 class="activity-title">区块链黑客松</h3>
+                <p class="activity-desc">48小时极限编程挑战，用你的创意和技术能力构建下一代去中心化应用。</p>
+                <div class="activity-meta">
+                    <span class="activity-tag">黑客松</span>
+                    <span class="activity-time">📅 2023-11-20</span>
+                    <span class="activity-status status-upcoming">未开始</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 活动卡片3 -->
+        <div class="activity-card">
+            <div class="activity-image">
+                <img src="https://source.unsplash.com/random/600x400/?nft,art" alt="NFT艺术展">
+            </div>
+            <div class="activity-info">
+                <h3 class="activity-title">NFT艺术展</h3>
+                <p class="activity-desc">展示来自全球艺术家的数字艺术作品，探索区块链技术在艺术领域的应用。</p>
+                <div class="activity-meta">
+                    <span class="activity-tag">展览</span>
+                    <span class="activity-time">📅 2023-10-30</span>
+                    <span class="activity-status status-ended">已结束</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 活动卡片4 -->
+        <div class="activity-card">
+            <div class="activity-image">
+                <img src="https://source.unsplash.com/random/600x400/?workshop,web3" alt="Web3工作坊">
+            </div>
+            <div class="activity-info">
+                <h3 class="activity-title">Web3开发工作坊</h3>
+                <p class="activity-desc">从零开始学习智能合约开发，实战演练DApp构建过程。</p>
+                <div class="activity-meta">
+                    <span class="activity-tag">工作坊</span>
+                    <span class="activity-time">📅 2023-11-05</span>
+                    <span class="activity-status status-ongoing">进行中</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer style="padding: 30px 5%; text-align: center; background: linear-gradient(to right, #0b0c10, #0f1a17); border-top: 1px solid var(--border-color);">
+    <p>© 2023 Mystonks 社区. 保留所有权利.</p>
+</footer>
+</body>
+</html>
