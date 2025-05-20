@@ -13,39 +13,39 @@
         }"
       ></div>
     </div>
+    正在开发， 敬请期待～
+<!--    <>&lt;!&ndash; 主内容区 &ndash;&gt;-->
+    <!--    <main class="merch-container">-->
+    <!--      &lt;!&ndash; 标题区 &ndash;&gt;-->
+    <!--      <div class="header-section">-->
+    <!--        <h1 class="page-title">-->
+    <!--          <span class="gradient-text">社区周边</span>-->
+    <!--        </h1>-->
+    <!--        <p class="page-description">收藏专属Web3文化，展现区块链信仰</p>-->
+    <!--      </div>-->
 
-    <!-- 主内容区 -->
-    <main class="merch-container">
-      <!-- 标题区 -->
-      <div class="header-section">
-        <h1 class="page-title">
-          <span class="gradient-text">社区周边</span>
-        </h1>
-        <p class="page-description">收藏专属Web3文化，展现区块链信仰</p>
-      </div>
+    <!--      &lt;!&ndash; 过滤选项 &ndash;&gt;-->
+    <!--      <div class="filter-controls">-->
+    <!--        <button-->
+    <!--            v-for="category in categories"-->
+    <!--            :key="category.value"-->
+    <!--            :class="['filter-btn', { active: activeCategory === category.value }]"-->
+    <!--            @click="activeCategory = category.value"-->
+    <!--        >-->
+    <!--          {{ category.label }}-->
+    <!--        </button>-->
+    <!--      </div>-->
 
-      <!-- 过滤选项 -->
-      <div class="filter-controls">
-        <button
-            v-for="category in categories"
-            :key="category.value"
-            :class="['filter-btn', { active: activeCategory === category.value }]"
-            @click="activeCategory = category.value"
-        >
-          {{ category.label }}
-        </button>
-      </div>
-
-      <!-- 周边商品列表 -->
-      <div class="merch-grid">
-        <MerchCard
-            v-for="item in filteredMerch"
-            :key="item.id"
-            :item="item"
-            @click="handleMerchClick(item.id)"
-        />
-      </div>
-    </main>
+    <!--      &lt;!&ndash; 周边商品列表 &ndash;&gt;-->
+    <!--      <div class="merch-grid">-->
+    <!--        <MerchCard-->
+    <!--            v-for="item in filteredMerch"-->
+    <!--            :key="item.id"-->
+    <!--            :item="item"-->
+    <!--            @click="handleMerchClick(item.id)"-->
+    <!--        />-->
+    <!--      </div>-->
+    <!--    </main></>-->
   </div>
 </template>
 

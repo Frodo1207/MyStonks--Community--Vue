@@ -30,7 +30,7 @@
     <!-- 页脚 -->
     <footer class="footer">
       <div class="footer-container">
-        <p>© 2023 Web3社区活动平台. 基于区块链技术构建</p>
+        <p>© 2025 MyStonks DAO. 基于共识构建</p>
       </div>
     </footer>
   </div>
@@ -237,15 +237,6 @@ body {
   color: var(--primary-light);
   font-weight: bold;
   margin: 0 0.3rem;
-}
-
-.image-placeholder {
-  position: relative;
-  background: rgba(138, 43, 226, 0.08);
-  border: 2px dashed var(--primary-color);
-  border-radius: 12px;
-  height: 320px;
-  overflow: hidden;
 }
 
 .animated-backdrop {

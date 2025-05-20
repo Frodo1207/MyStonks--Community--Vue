@@ -1,13 +1,7 @@
 <template>
 
   <!-- 新版欢迎Banner -->
-  <Banner
-      :title-part1="'欢迎加入'"
-      :title-highlight="'MyStonks未来社区'"
-      :highlight-number="150"
-      :subtitle-lines="['优质链上资产', '独家数字权益']"
-      placeholder-text="数字资产预览"
-  />
+  <Banner/>
   <div class="home-view">
     <ActivityList
         title="热门活动"
