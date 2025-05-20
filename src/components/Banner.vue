@@ -199,8 +199,11 @@ const formattedSubtitle = computed(() => {
   display: flex;
   gap: 16px;
   margin-bottom: 1.5rem;
+  margin-top: 2rem;
 }
-
+.intro {
+  font-size: small;
+}
 .social-icon {
   color: rgba(255, 255, 255, 0.7);
   transition: all 0.3s ease;

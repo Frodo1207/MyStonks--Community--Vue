@@ -53,7 +53,7 @@ const emit = defineEmits(['connect']);
 const showMobileMenu = ref(false);
 const navLinks = ref([
   { path: '/', name: '首页' },
-  { path: '/activities', name: '链上活动' },
+  { path: '/activities', name: '社区活动' },
   { path: '/governance', name: '社区治理' },
   { path: '/merch', name: '社区周边' }
 ]);
