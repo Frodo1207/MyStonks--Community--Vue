@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ActivityView from '../views/ActivityView.vue'
 import AllActivityView from "@/views/AllActivityView.vue";
 import CommunityMerchView from "@/views/CommunityMerchView.vue"
+import TaskCenterView from "@/views/TaskCenterView.vue";
 
 const routes = [
     {
@@ -31,6 +32,14 @@ const routes = [
         path: '/merch',
         name: 'Merch',
         component: CommunityMerchView,
+        meta: {
+            title: '社区周边 - Web3社区'
+        }
+    },
+    {
+        path: '/taskcenter',
+        name: 'taskcenter',
+        component: TaskCenterView,
         meta: {
             title: '社区周边 - Web3社区'
         }
