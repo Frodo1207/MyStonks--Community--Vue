@@ -40,26 +40,15 @@
 import { ref, computed } from 'vue';
 import NavBar from '@/components/NavBar.vue';
 
-// 钱包连接逻辑
-const connected = ref(false);
-const walletAddress = ref('');
+import { useWallet } from 'solana-wallets-vue'
+// import { Connection, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js'
 
-const truncatedAddress = computed(() => {
-  if (walletAddress.value.length > 0) {
-    return `${walletAddress.value.substring(0, 6)}...${walletAddress.value.substring(38)}`;
-  }
-  return '';
-});
+const { publicKey, connected, wallet, sendTransaction } = useWallet()
 
-const connectWallet = async () => {
-  try {
-    connected.value = true;
-    walletAddress.value = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
-    console.log('Wallet connected:', walletAddress.value);
-  } catch (error) {
-    console.error('Error connecting wallet:', error);
-  }
-};
+
+
+
+
 </script>
 
 <style>

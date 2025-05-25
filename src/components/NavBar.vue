@@ -19,10 +19,12 @@
       </div>
 
       <div class="nav-right">
-        <div class="wallet-connect" @click="emit('connect')">
-          <span v-if="!connected">连接钱包</span>
+        <wallet-multi-button class="wallet-connect"></wallet-multi-button>
+<!--        <div class="wallet-connect" @click="emit('connect')">
+&lt;!&ndash;          <span v-if="!connected"></span>&ndash;&gt;
+
           <span v-else class="wallet-address">{{ truncatedAddress }}</span>
-        </div>
+        </div>-->
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
           <div class="hamburger" :class="{ 'active': showMobileMenu }"></div>
         </button>
@@ -34,6 +36,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { WalletMultiButton } from 'solana-wallets-vue'
 
 const props = defineProps({
   connected: Boolean,
