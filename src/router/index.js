@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ActivityView from '../views/ActivityView.vue'
 import AllActivityView from "@/views/AllActivityView.vue";
 import CommunityMerchView from "@/views/CommunityMerchView.vue"
+import TaskView from "@/views/TaskView.vue"
 
 const routes = [
     {
@@ -34,8 +35,15 @@ const routes = [
         meta: {
             title: '社区周边 - Web3社区'
         }
+    },
+    {
+        path: '/tasks',
+        name: 'Tasks',
+        component: TaskView,
+        meta: {
+            title: '任务管理 - Web3社区'
+        }
     }
-
 ]
 
 const router = createRouter({
