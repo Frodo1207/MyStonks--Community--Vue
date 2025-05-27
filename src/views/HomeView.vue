@@ -34,7 +34,7 @@
   const { sortedActivities } = storeToRefs(activityStore)
 
   // 打印检查数据
-  console.log('Initial sortedActivities:', sortedActivities.value)
+ // console.log('Initial sortedActivities:', sortedActivities.value)
 
   const handleTaskAction = () => {
     console.log('任务按钮被点击');
@@ -43,7 +43,7 @@
 
   onMounted(() => {
   // 组件挂载后再次打印，确保数据已加载
-  console.log('sortedActivities after mount:', sortedActivities.value)
+  //console.log('sortedActivities after mount:', sortedActivities.value)
 
   // 如果需要，可以在这里调用action来加载数据
   // activityStore.fetchActivities()
