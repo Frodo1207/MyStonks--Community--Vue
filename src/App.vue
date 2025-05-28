@@ -30,7 +30,7 @@
     <!-- 页脚 -->
     <footer class="footer">
       <div class="footer-container">
-        <p>© 2023 Web3社区活动平台. 基于区块链技术构建</p>
+        <p>© 2025 MyStonks DAO. 基于共识构建</p>
       </div>
     </footer>
   </div>
@@ -40,26 +40,15 @@
 import { ref, computed } from 'vue';
 import NavBar from '@/components/NavBar.vue';
 
-// 钱包连接逻辑
-const connected = ref(false);
-const walletAddress = ref('');
+import { useWallet } from 'solana-wallets-vue'
+// import { Connection, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js'
 
-const truncatedAddress = computed(() => {
-  if (walletAddress.value.length > 0) {
-    return `${walletAddress.value.substring(0, 6)}...${walletAddress.value.substring(38)}`;
-  }
-  return '';
-});
+const { publicKey, connected, wallet, sendTransaction } = useWallet()
 
-const connectWallet = async () => {
-  try {
-    connected.value = true;
-    walletAddress.value = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
-    console.log('Wallet connected:', walletAddress.value);
-  } catch (error) {
-    console.error('Error connecting wallet:', error);
-  }
-};
+
+
+
+
 </script>
 
 <style>
@@ -237,15 +226,6 @@ body {
   color: var(--primary-light);
   font-weight: bold;
   margin: 0 0.3rem;
-}
-
-.image-placeholder {
-  position: relative;
-  background: rgba(138, 43, 226, 0.08);
-  border: 2px dashed var(--primary-color);
-  border-radius: 12px;
-  height: 320px;
-  overflow: hidden;
 }
 
 .animated-backdrop {

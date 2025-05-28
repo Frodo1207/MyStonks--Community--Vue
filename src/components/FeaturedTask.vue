@@ -1,70 +1,97 @@
 <template>
-
-  <!-- 新版欢迎Banner -->
-  <Banner/>
-
-  <FeaturedTask
-      title="加入tg社区"
-      description="加入tg社区并绑定钱包，领取奖励"
-      :progress="30"
-      :rewardAmount="200"
-      rewardUnit="积分"
-      bonusAmount="50"
-      actionText="立即验证"
-      @action="handleTaskAction"
-  />
-
-  <div class="home-view">
-    <ActivityList
-        title="热门活动"
-        :activities="sortedActivities"
-    />
+  <h2 class="title">精选任务</h2>
+  <div class="featured-task-horizontal">
+    <div class="task-content">
+      <div class="task-main">
+        <div class="task-info">
+          <div class="task-header">
+            <div class="task-icon">
+              <slot name="icon">
+                <!-- 默认图标 -->
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.5,8L11,13.5L7.5,10L6,11.5L11,16.5Z" />
+                </svg>
+              </slot>
+            </div>
+            <h3 class="task-title">{{ title }}</h3>
+          </div>
+          <p class="task-description">{{ description }}</p>
+        </div>
+        <div class="task-progress" v-if="showProgress">
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+            </div>
+            <span class="progress-text">{{ progress }}% 完成</span>
+          </div>
+        </div>
+        <div class="task-reward" v-if="showReward">
+          <span class="reward-amount">{{ rewardAmount }}</span>
+          <span class="reward-unit">{{ rewardUnit }}</span>
+          <span class="reward-bonus" v-if="bonusAmount">+{{ bonusAmount }} 额外奖励</span>
+        </div>
+      </div>
+      <button class="task-action" @click="$emit('action')">
+        {{ actionText }}
+        <svg viewBox="0 0 24 24" width="16" height="16" class="arrow-icon">
+          <path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-  import { storeToRefs } from 'pinia'
-  import { useActivityStore } from '@/stores/activityStore'
-  import ActivityList from '@/components/ActivityList.vue'
-  import { onMounted } from 'vue'
-  import Banner from '@/components/Banner.vue';
-  import FeaturedTask from '@/components/FeaturedTask.vue';
+defineProps({
+  badgeText: {
+    type: String,
+    default: '精选任务'
+  },
+  title: {
+    type: String,
+    default: '进入tg社群'
+  },
+  description: {
+    type: String,
+    default: '进入tg社区，绑定钱包，领取奖励'
+  },
+  showProgress: {
+    type: Boolean,
+    default: true
+  },
+  progress: {
+    type: Number,
+    default: 30,
+    validator: value => value >= 0 && value <= 100
+  },
+  showReward: {
+    type: Boolean,
+    default: true
+  },
+  rewardAmount: {
+    type: [Number, String],
+    default: 200
+  },
+  rewardUnit: {
+    type: String,
+    default: '积分'
+  },
+  bonusAmount: {
+    type: [Number, String],
+    default: '50'
+  },
+  actionText: {
+    type: String,
+    default: '立即验证'
+  }
+});
 
-  const activityStore = useActivityStore()
-  const { sortedActivities } = storeToRefs(activityStore)
-
-  // 打印检查数据
- // console.log('Initial sortedActivities:', sortedActivities.value)
-
-  const handleTaskAction = () => {
-    console.log('任务按钮被点击');
-    // 这里可以添加处理逻辑，比如跳转页面或打开弹窗
-  };
-
-  onMounted(() => {
-  // 组件挂载后再次打印，确保数据已加载
-  //console.log('sortedActivities after mount:', sortedActivities.value)
-
-  // 如果需要，可以在这里调用action来加载数据
-  // activityStore.fetchActivities()
-})
-
-  // 如果数据是异步加载的，可以添加一个watcher
-  // import { watch } from 'vue'
-  // watch(sortedActivities, (newVal) => {
-//   console.log('sortedActivities changed:', newVal)
-// }, { deep: true })
-
+defineEmits(['action']);
 </script>
 
 <style scoped>
-.home-view {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-/* 长条形精选任务卡片样式 */
 .featured-task-horizontal {
-  width: calc(100% - 40px); /* 减去两侧padding */
+  width: calc(100% - 40px);
   max-width: 1200px;
   background: linear-gradient(135deg, rgba(30, 30, 46, 0.8), rgba(44, 24, 62, 0.8));
   backdrop-filter: blur(12px);
@@ -72,7 +99,7 @@
   padding: 1.5rem;
   border: 1px solid rgba(138, 43, 226, 0.3);
   box-shadow: 0 8px 24px rgba(138, 43, 226, 0.2);
-  margin: 2rem auto; /* 改为auto实现水平居中 */
+  margin: 1.5rem auto;
   position: relative;
   overflow: hidden;
 }
@@ -142,7 +169,9 @@
 .task-icon svg {
   color: var(--primary-light);
 }
-
+.title {
+  padding-left: 20px;
+}
 .task-title {
   font-size: 1.2rem;
   color: white;
@@ -246,7 +275,6 @@
   transform: translateX(3px);
 }
 
-/* 响应式调整 */
 @media (max-width: 992px) {
   .featured-task-horizontal {
     width: calc(100% - 40px);
@@ -282,7 +310,7 @@
 @media (max-width: 576px) {
   .featured-task-horizontal {
     padding: 1.2rem;
-    width: calc(100% - 24px); /* 更小的屏幕减小宽度 */
+    width: calc(100% - 24px);
   }
 
   .task-header {
@@ -294,12 +322,5 @@
     margin-right: 0;
     margin-bottom: 0.5rem;
   }
-}
-
-/* 确保整体布局一致 */
-.home-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: calc(100% - 40px); /* 与任务卡片保持一致 */
 }
 </style>
