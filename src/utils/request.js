@@ -1,17 +1,20 @@
 // src/utils/request.js
 import axios from 'axios';
+import { walletLoginRefresh} from '@/services/user.js'
+
+
 
 // 创建实例
 const service = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL, // Vite 项目用 env
-    timeout: 10000, // 超时 10 秒
+    baseURL: '/api', // ✅ 使用代理路径
+    timeout: 30000,
 });
 
 // 请求拦截器
 service.interceptors.request.use(
     (config) => {
         // 加 token
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -19,21 +22,41 @@ service.interceptors.request.use(
         return config;
     },
     (error) => {
-        console.error('请求错误:', error);
-        return Promise.reject(error);
+
+        return {...error,status:'error',};
     }
 );
 
 // 响应拦截器
 service.interceptors.response.use(
-    (response) => {
+    async (response) => {
         const res = response.data;
         if (res.code !== 0) {
+            if(res.code===10002){
+              const refresh_token = sessionStorage.getItem('refresh_token')
+            if(refresh_token){
+                const res = await walletLoginRefresh({refresh_token})
+                // auth校验失败，刷新令牌
+                if(res.code===10002){
+                    // 存储用户信息到 Pinia Store
+                    userStore.setUserInfo({
+                        walletAddress: address,
+                        isAuthenticated: false,
+                        access_token: response.access_token,
+                        refresh_token:response.refresh_token,
+                        login:true
+                    })
+                    sessionStorage.setItem('access_token',res.data.access_token);
+                    sessionStorage.setItem('refresh_token',res.data.refresh_token);
+                }
+            }
+            }
             // 根据后端返回的 code 判断成功/失败
-            console.warn('接口报错:', res.message || '接口错误');
-            return Promise.reject(res);
+            return {...res,status:'error'};
         }
-        return res; // 返回 data 部分
+        if(res.code===0) {
+            return res.data; // 返回 data 部分
+        }
     },
     (error) => {
         console.error('响应错误:', error);
@@ -46,7 +69,7 @@ service.interceptors.response.use(
                 alert('服务器错误，请稍后再试');
             }
         }
-        return Promise.reject(error);
+        return {...error,status:'errors'};
     }
 );
 

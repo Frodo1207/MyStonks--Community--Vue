@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import HomeView from '../views/homeView/index.vue'
 import ActivityView from '../views/ActivityView.vue'
 import AllActivityView from "@/views/AllActivityView.vue";
 import CommunityMerchView from "@/views/CommunityMerchView.vue"
