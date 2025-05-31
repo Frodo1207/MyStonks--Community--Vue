@@ -9,7 +9,8 @@ import {
     PhantomWalletAdapter,
     SolflareWalletAdapter,
     // 如需支持其他钱包，请在此处添加相应的适配器
-} from '@solana/wallet-adapter-wallets'
+} from '@solana/wallet-adapter-wallets';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
 
 const walletOptions = {
@@ -23,7 +24,9 @@ const walletOptions = {
 
 
 
+// 创建 Pinia 实例
 const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate);
 
 
 
