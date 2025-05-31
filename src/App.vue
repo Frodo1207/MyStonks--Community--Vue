@@ -70,8 +70,9 @@ watch(
           const response =await walletLogin({
             address: address,
             nonce:random.nonce,
-            signature: ''
+            signature: signatureBase64
           })
+debugger
           if(response.status!=='error'){
             // 存储用户信息到 Pinia Store
             userStore.setUserInfo({
