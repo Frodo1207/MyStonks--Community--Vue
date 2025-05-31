@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 
 export const useActivityStore = defineStore('activity', {
     state: () => ({
+        userinfo: {
+            username: 'John Doe',
+            telegram:  undefined,
+        },
         activities: [
             {
                 id: 1,

@@ -37,16 +37,67 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { watch } from 'vue'
+import {ref, computed, watchEffect} from 'vue';
 import NavBar from '@/components/NavBar.vue';
 
 import { useWallet } from 'solana-wallets-vue'
+import {getRandom,walletLogin} from "@/services/user.js";
 // import { Connection, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 const { publicKey, connected, wallet, sendTransaction } = useWallet()
 
 
 
+
+// 监听连接状态变化
+watch(
+    () => connected.value,
+    async (newConnected) => {
+      console.log(wallet);
+      if (newConnected && publicKey.value) {
+        const random = await getRandom()
+        debugger
+        if(random.status!=='error'){
+          // 触发登录接口
+          const address = publicKey.value.toBase58()
+
+          // 构造签名消息（通常使用 nonce）
+          const message = new TextEncoder().encode(random.nonce)
+
+          // 使用钱包签名
+          const signature = await wallet.signMessage(message, 'utf8')
+          const response = walletLogin({
+            address: address,
+            nonce:random.nonce,
+            signature: signature
+          })
+debugger
+          if (!response.ok) throw new Error('登录失败')
+
+          const data = await response.json()
+          // 存储用户信息到 Pinia Store
+          userStore.setUserInfo({
+            walletAddress: address,
+            token: data.token,
+            isAuthenticated: true
+          })
+        }
+        try {
+
+
+        } catch (error) {
+          console.error('钱包登录接口异常:', error)
+          // 可选：触发全局错误提示
+        }
+      }
+    }
+)
+
+const walletAddress = computed(() => {
+  console.log(publicKey.value?.toBase58(),connected.value);
+  return publicKey.value?.toBase58() || '未连接'
+})
 
 
 </script>
