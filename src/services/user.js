@@ -8,6 +8,12 @@ export function walletLogin(data) {
     return request.post('/v1/auth/login', data);
 }
 
+export function walletLoginOut(data) {
+    return request.post('/v1/auth/logout', data);
+}
+
+
+
 /** 获取登陆随机数*/
 export function getRandom(){
     return request.get('/v1/auth/nonce');
