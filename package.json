@@ -19,10 +19,12 @@
     "react-dom": "^19.1.0",
     "solana-wallets-vue": "^0.7.1",
     "vue": "^3.5.13",
+    "vue-i18n": "^11.1.5",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
+    "prettier": "^3.5.3",
     "vite": "^6.3.5"
   }
 }
