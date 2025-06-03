@@ -1,9 +1,7 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
-import router from './router' // 确保路径正确
-import { createPinia } from 'pinia'
-import SolanaWallets from 'solana-wallets-vue'
+import { createApp } from 'vue';
+
+import { createPinia } from 'pinia';
+import SolanaWallets from 'solana-wallets-vue';
 import 'solana-wallets-vue/styles.css';
 import {
     PhantomWalletAdapter,
@@ -12,6 +10,11 @@ import {
 } from '@solana/wallet-adapter-wallets';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
+import { i18n } from './i18n';
+import router from './router';
+import App from './App.vue';
+
+import './style.css';
 
 const walletOptions = {
     wallets: [
@@ -19,15 +22,11 @@ const walletOptions = {
         new SolflareWalletAdapter(),
         // 添加其他钱包适配器实例
     ],
-    autoConnect: true
-}
-
-
+    autoConnect: true,
+};
 
 // 创建 Pinia 实例
-const pinia = createPinia()
+const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-
-
-createApp(App).use(router).use(pinia).use(SolanaWallets, walletOptions).mount('#app')
+createApp(App).use(router).use(pinia).use(SolanaWallets, walletOptions).use(i18n).mount('#app');
