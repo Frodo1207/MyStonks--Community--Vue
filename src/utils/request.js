@@ -1,11 +1,9 @@
 // src/utils/request.js
 import axios from 'axios';
 
-
-
 // 创建实例
 const service = axios.create({
-    baseURL: '/api', // ✅ 使用代理路径
+    baseURL: 'http://localhost:8000/', // ✅ 使用代理路径
     timeout: 30000,
 });
 

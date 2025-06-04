@@ -16,11 +16,17 @@
           </div>
           <div class="stat-item">
             <span class="stat-value">{{ currentLevel }}</span>
-            <span class="stat-label">当前等级</span>
+            <span class="stat-label">当前排名</span>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 新手任务 -->
+    <NewbieTaskList
+        :tasks="newbieTasks"
+        @action="handleTaskAction"
+    />
 
     <!-- 日常任务 -->
     <div class="section-title">
@@ -39,6 +45,12 @@
           @action="handleTaskAction(task)"
       />
     </div>
+
+    <!-- 其他任务 -->
+    <OtherTasksGrid
+        :tasks="otherTasks"
+        @action="handleTaskAction"
+    />
 
     <!-- 排行榜 -->
     <div class="section-title">
@@ -75,89 +87,32 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import TaskCard from '@/components/TaskCard.vue'
+import NewbieTaskList from '@/components/NewbieTaskList.vue'
+import OtherTasksGrid from '@/components/OtherTasksGrid.vue'
+import { getDailyTasks, getNewbieTasks, getOtherTasks, getUserTasksInfo } from "@/services/tasks.js"
 
 // 用户数据
-const completedTasks = ref(12)
-const totalPoints = ref(4500)
-const currentLevel = ref(3)
+const completedTasks = ref(0)
+const totalPoints = ref(0)
+const currentLevel = ref(0)
+const currentUserId = ref(null)
+const currentUserName = ref('')
 
-// 日常任务数据
-const dailyTasks = ref([
-  {
-    id: 101,
-    title: '每日签到',
-    description: '访问社区网站并签到',
-    reward: 50,
-    completed: true,
-    icon: 'check-circle'
-  },
-  {
-    id: 102,
-    title: '社区互动',
-    description: '在论坛发表1条评论',
-    reward: 100,
-    completed: false,
-    icon: 'message-square'
-  },
-  {
-    id: 103,
-    title: '学习Web3',
-    description: '完成一篇教程学习',
-    reward: 150,
-    completed: false,
-    icon: 'book-open'
-  }
-])
+// 排行榜数据
+const leaderboard = ref([])
 
-// 排行榜数据（使用钱包地址）
-const leaderboard = ref([
-  {
-    id: 1,
-    address: '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE',
-    points: 12500,
-    isCurrentUser: false
-  },
-  {
-    id: 2,
-    address: '0xDec803B6b6b57E4E9E789F4C692210e284220904',
-    points: 9800,
-    isCurrentUser: false
-  },
-  {
-    id: 3,
-    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-    points: 8760,
-    isCurrentUser: false
-  },
-  {
-    id: 9,
-    address: '0x4B5922ABf25858d012da12C879BecC631AC6e7b1',
-    points: 2100,
-    isCurrentUser: true
-  },
-])
-// 格式化地址显示
-const formatAddress = (address) => {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
-// 刷新时间
+// 任务数据
+const newbieTasks = ref([])
+const dailyTasks = ref([])
+const otherTasks = ref([])
+
+// 倒计时显示
 const refreshTime = ref('12:34:56')
 
-// 方法
-const handleTaskAction = (task) => {
-  console.log('处理任务:', task.title)
-  markTaskComplete(task.id)
-}
+// 方法：格式化钱包地址
+const formatAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`
 
-const markTaskComplete = (taskId) => {
-  const task = dailyTasks.value.find(t => t.id === taskId)
-  if (task) {
-    task.completed = true
-    totalPoints.value += task.reward
-    completedTasks.value += 1
-  }
-}
-
+// 方法：获取排行榜样式
 const getRankClass = (rank) => {
   if (rank === 1) return 'gold'
   if (rank === 2) return 'silver'
@@ -165,16 +120,64 @@ const getRankClass = (rank) => {
   return ''
 }
 
-// 模拟倒计时
-onMounted(() => {
+// 方法：处理任务点击
+const handleTaskAction = (task) => {
+  console.log('处理任务:', task.title)
+  markTaskComplete(task.id)
+}
+
+const markTaskComplete = (taskId) => {
+  const update = (list) => {
+    const task = list.find(t => t.id === taskId)
+    if (task && !task.completed) {
+      task.completed = true
+      totalPoints.value += task.reward
+      completedTasks.value += 1
+    }
+  }
+
+  update(newbieTasks.value)
+  update(dailyTasks.value)
+  update(otherTasks.value)
+}
+
+// 数据加载
+onMounted(async () => {
+  // 模拟倒计时
   setInterval(() => {
-    // 这里应该计算真实的时间差
-    // 简化版仅用于演示
-    refreshTime.value = '11:23:45'
+    refreshTime.value = '11:23:45' // 实际应使用动态倒计时逻辑
   }, 1000)
+
+  try {
+    const [userResp, dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
+      getUserTasksInfo(),
+      getDailyTasks(),
+      getNewbieTasks(),
+      getOtherTasks()
+    ])
+
+    const userData = userResp?.data?.data || {}
+    completedTasks.value = userData.tasks?.length || 0
+    totalPoints.value = userData.point || 0
+    currentLevel.value = userData.rank || 0
+    currentUserId.value = userData.user_id
+    currentUserName.value = userData.user_name
+
+    if (dailyTaskResp?.data?.data) dailyTasks.value = dailyTaskResp.data.data
+    if (newbieTaskResp?.data?.data) newbieTasks.value = newbieTaskResp.data.data
+    if (otherTasksResp?.data?.data) otherTasks.value = otherTasksResp.data.data
+
+    leaderboard.value = [
+      { id: 1, address: '0x3f5C...', points: 12500, isCurrentUser: false },
+      { id: 2, address: '0xDec8...', points: 9800, isCurrentUser: false },
+      { id: 9, address: '0x4B59...', points: userData.point, isCurrentUser: true }
+    ]
+
+  } catch (error) {
+    console.error("初始化任务中心失败:", error)
+  }
 })
 </script>
-
 <style scoped>
 .task-center-page {
   max-width: 1200px;
