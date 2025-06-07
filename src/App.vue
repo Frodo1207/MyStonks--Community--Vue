@@ -72,7 +72,6 @@ watch(
             signature: signatureBase64
           })
           if(response.status!=='error'){
-            debugger
             // 存储用户信息到 Pinia Store
             userStore.setUserInfo({
               walletAddress: address,
@@ -83,7 +82,8 @@ watch(
             })
             sessionStorage.setItem('access_token',response.access_token);
             sessionStorage.setItem('refresh_token',response.refresh_token);
-            debugger
+
+
           }
 
         }
@@ -94,7 +94,7 @@ watch(
           if(response.status!=='error'){
             userStore.$reset()
             sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
           }
         }
 
