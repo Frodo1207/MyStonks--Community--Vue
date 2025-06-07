@@ -77,8 +77,9 @@ watch(
               refresh_token: response.refresh_token,
               login: true
             })
-            sessionStorage.setItem('access_token', response.access_token);
-            sessionStorage.setItem('refresh_token', response.refresh_token);
+
+            sessionStorage.setItem('access_token',response.access_token);
+            sessionStorage.setItem('refresh_token',response.refresh_token);
           }
         }
       } else {
