@@ -1,5 +1,13 @@
 <template>
   <Teleport to="body">
+
+    <div v-if="isLoggingIn" class="login-loading-modal">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <p>正在登录中，请稍候...</p>
+      </div>
+    </div>
+
     <div
         class="modal-overlay"
         :class="{ 'active': showModal }"
@@ -75,7 +83,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, watch } from 'vue';
 import { useWallet } from 'solana-wallets-vue';
 
 const { connected, publicKey, connect, disconnect, select, wallets } = useWallet();
@@ -103,41 +111,6 @@ const walletProviders = computed(() => {
     adapter: wallet.adapter
   }));
 });
-
-// 检查 URL 中的 Telegram 授权回调参数
-const checkTelegramAuth = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const tgAuth = urlParams.get('tgAuth');
-
-  if (tgAuth) {
-    try {
-      const authData = JSON.parse(decodeURIComponent(tgAuth));
-      if (authData.id) {
-        // 成功获取 Telegram 用户数据
-        handleTelegramAuthSuccess(authData);
-
-        // 清除 URL 中的参数
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-    } catch (e) {
-      console.error('Telegram 授权数据解析失败:', e);
-    }
-  }
-};
-
-
-// 处理 Telegram 授权成功
-const handleTelegramAuthSuccess = (userData) => {
-  isTelegramBound.value = true;
-  telegramUsername.value = userData.username || userData.first_name;
-  telegramId.value = userData.id;
-
-  // 这里可以添加将 Telegram 账号绑定到用户钱包的逻辑
-  // 例如发送到后端 API 进行关联存储
-  console.log('Telegram 用户数据:', userData);
-};
-
 // 初始化 Telegram 登录
 const initiateTelegramLogin = () => {
   if (isTelegramBound.value) return;
@@ -216,7 +189,11 @@ const disconnectWallet = async () => {
     console.error('断开连接失败:', error);
   }
 };
-
+watch(connected, async (newVal) => {
+  if (newVal && publicKey.value) {
+    await handleWalletLogin();
+  }
+});
 // 绑定Twitter
 const bindTwitter = () => {
   // 这里应该实现实际的Twitter绑定逻辑
@@ -226,9 +203,23 @@ const bindTwitter = () => {
   isTwitterBound.value = true;
 };
 
+const isLoggingIn = ref(false);
+
+const handleWalletLogin = async () => {
+  isLoggingIn.value = true;
+
+  setTimeout(() => {
+    // 隐藏加载弹窗
+    isLoggingIn.value = false;
+
+    // 显示登录成功提示
+    alert("登录成功");
+
+  }, 5000);
+};
+
 // 组件挂载时检查 Telegram 授权
 onMounted(() => {
-  checkTelegramAuth();
 
   // 检查本地存储中是否有已绑定的 Telegram 账号
   const savedTgData = localStorage.getItem('telegramAuth');
@@ -700,5 +691,47 @@ onMounted(() => {
   .modal-header h3 {
     font-size: 1.2rem;
   }
+}
+.login-loading-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  background-color: #1e1e2e;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 300px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1rem;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: #0088cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-content p {
+  color: white;
+  margin-top: 1rem;
+  font-size: 1rem;
 }
 </style>
