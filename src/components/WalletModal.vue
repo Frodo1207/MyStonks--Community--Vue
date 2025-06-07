@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, watch } from 'vue';
 import { useWallet } from 'solana-wallets-vue';
 
 const { connected, publicKey, connect, disconnect, select, wallets } = useWallet();
@@ -205,6 +205,31 @@ const selectWallet = async (wallet) => {
   } catch (error) {
     console.error('钱包连接错误:', error);
   }
+};
+
+// 监听钱包连接状态
+watch(connected, async (newVal) => {
+  if (newVal && publicKey.value) {
+    console.log("钱包已连接", publicKey.value.toString());
+    await handleWalletLogin();
+  }
+});
+
+const handleWalletLogin = async () => {
+  // 显示加载弹窗
+  isLoggingIn.value = true;
+
+  // 模拟登录过程（5秒后完成）
+  setTimeout(() => {
+    // 隐藏加载弹窗
+    isLoggingIn.value = false;
+
+    // 显示登录成功提示
+    alert("登录成功");
+
+    // 这里可以添加登录成功后的逻辑
+    // 例如跳转到首页或更新用户状态
+  }, 5000);
 };
 
 const disconnectWallet = async () => {
@@ -700,5 +725,48 @@ onMounted(() => {
   .modal-header h3 {
     font-size: 1.2rem;
   }
+}
+/* 加载弹窗样式 */
+.login-loading-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  background-color: #1e1e2e;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 300px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1rem;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: #0088cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-content p {
+  color: white;
+  margin-top: 1rem;
+  font-size: 1rem;
 }
 </style>
