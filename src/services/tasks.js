@@ -24,3 +24,9 @@ export async function getOtherTasks() {
 export async function getUserTasksInfo(userid) {
     return await service.get('/api/v1/user/task?user_id=' + userid);
 }
+
+/** 获取用户任务完成情况 */
+export async function checkTaskIsComplete(userid, task_id) {
+    return await service.get('/api/v1/task/complete?user_id=' + userid + '&task_id=' + task_id);
+}
+

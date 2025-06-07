@@ -24,10 +24,10 @@
 
     <!-- 新手任务 -->
     <NewbieTaskList
+        v-if="!allNewbieTasksCompleted"
         :tasks="newbieTasks"
         @action="handleTaskAction"
     />
-
     <!-- 日常任务 -->
     <div class="section-title">
       <h2>日常任务</h2>
@@ -85,11 +85,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import TaskCard from '@/components/TaskCard.vue'
 import NewbieTaskList from '@/components/NewbieTaskList.vue'
 import OtherTasksGrid from '@/components/OtherTasksGrid.vue'
-import { getDailyTasks, getNewbieTasks, getOtherTasks, getUserTasksInfo } from "@/services/tasks.js"
+import { getDailyTasks, getNewbieTasks, getOtherTasks, getUserTasksInfo, checkTaskIsComplete } from "@/services/tasks.js"
 
 // 用户数据
 const completedTasks = ref(0)
@@ -120,10 +120,43 @@ const getRankClass = (rank) => {
   return ''
 }
 
-// 方法：处理任务点击
-const handleTaskAction = (task) => {
-  console.log('处理任务:', task.title)
-  markTaskComplete(task.id)
+const allNewbieTasksCompleted = computed(() => {
+  return newbieTasks.value.length > 0 && newbieTasks.value.every(task => task.completed)
+})
+
+const handleTaskAction = async (task) => {
+  // 处理特殊动作任务
+  console.log(task)
+  if (task.special_action === 'login_popup') {
+    alert('请先登录钱包以完成该任务')
+    return
+  }
+
+  if (task.special_action === 'tg_bind_popup') {
+    alert('请先绑定TG账户以完成该任务')
+    return
+  }
+
+  // 阻止日常和其他任务的点击，若新手任务未完成
+  const isRestrictedTask = dailyTasks.value.concat(otherTasks.value).some(t => t.id === task.id)
+  if (!allNewbieTasksCompleted.value && isRestrictedTask) {
+    alert('请先完成所有新手任务，再进行后续任务～')
+    return
+  }
+
+  // 正常校验任务是否已完成
+  try {
+    const res = await checkTaskIsComplete(currentUserId.value, task.id)
+    const { completed } = res.data || {}
+    if (completed) {
+      markTaskComplete(task.id)
+    } else {
+      alert('任务尚未完成，请按照要求完成任务后再返回点击。')
+    }
+  } catch (err) {
+    console.error('任务完成校验失败:', err)
+    alert('检查任务失败，请稍后再试')
+  }
 }
 
 const markTaskComplete = (taskId) => {
