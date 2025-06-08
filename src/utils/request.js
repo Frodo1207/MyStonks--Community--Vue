@@ -4,7 +4,7 @@ import { walletLoginRefresh} from '@/services/user.js'
 
 // 创建实例
 const service = axios.create({
-    baseURL: 'http://localhost:8000/', // ✅ 使用代理路径
+    baseURL: 'http://localhost:5173/api', // ✅ 使用代理路径
     timeout: 30000,
 });
 
@@ -20,7 +20,6 @@ service.interceptors.request.use(
         return config;
     },
     (error) => {
-
         return {...error,status:'error',};
     }
 );

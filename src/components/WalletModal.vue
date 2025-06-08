@@ -11,7 +11,8 @@
         <button class="close-btn" @click="closeModal">&times;</button>
       </div>
 
-      <div v-if="connected" class="connected-view">
+      <div v-if="connected"
+           class="connected-view">
         <div class="wallet-info">
           <img
               v-if="currentWalletIcon"
@@ -20,7 +21,7 @@
           >
           <div class="wallet-details">
             <p class="wallet-name">{{ currentWalletName }}</p>
-            <p class="wallet-address">{{ walletAddress }}</p>
+            <p class="wallet-address">{{ truncatedAddress }}</p>
           </div>
         </div>
 
@@ -30,12 +31,14 @@
 
             <button
                 class="social-btn tg-btn"
-                @click="initiateTelegramLogin"
+                @click="bindTelegram"
                 :disabled="isTelegramBound"
+                id="telegram-login-button"
             >
               <i class="icon-tg"></i>
               {{ isTelegramBound ? `已绑定 Telegram (${telegramUsername})` : '绑定 Telegram' }}
             </button>
+<!--            <div  id="telegram-login-button"></div>-->
 
 
             <button
@@ -87,14 +90,18 @@ const props = defineProps({
 
 const emit = defineEmits(['update:showModal', 'disconnect']);
 
+const truncatedAddress = computed(() => {
+  if (publicKey.value) {
+    const address = publicKey.value.toString();
+    return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+  }
+  return '';
+});
+
+
 // 社交账号绑定状态
 const isTelegramBound = ref(false);
 const isTwitterBound = ref(false);
-
-// Telegram 相关状态
-const telegramUsername = ref('');
-const telegramId = ref('');
-const telegramAuthUrl = ref('');
 
 const walletProviders = computed(() => {
   return wallets.value.map(wallet => ({
@@ -127,16 +134,6 @@ const checkTelegramAuth = () => {
 };
 
 
-// 处理 Telegram 授权成功
-const handleTelegramAuthSuccess = (userData) => {
-  isTelegramBound.value = true;
-  telegramUsername.value = userData.username || userData.first_name;
-  telegramId.value = userData.id;
-
-  // 这里可以添加将 Telegram 账号绑定到用户钱包的逻辑
-  // 例如发送到后端 API 进行关联存储
-  console.log('Telegram 用户数据:', userData);
-};
 
 // 初始化 Telegram 登录
 const initiateTelegramLogin = () => {
@@ -184,6 +181,42 @@ const initiateTelegramLogin = () => {
     }
   });
 };
+
+
+// Telegram 登录回调函数（必须挂载到 window）
+function onTelegramAuth(user) {
+
+  console.log('✅ Telegram 登录成功，用户信息:', user)
+  // 你可以把 user.id / user.username 等发给后端
+}
+
+
+const bindTelegram = () => {
+  console.log('绑定账号被点击',11111);
+  // 将回调函数挂载到 window
+  window.onTelegramAuth = onTelegramAuth
+  const script = document.createElement('script')
+  script.src = 'https://telegram.org/js/telegram-widget.js?7'
+  script.async = true
+  script.setAttribute('data-telegram-login', 'myStonks_mawen_bot') // ⚠️ 替换成你的 Bot 用户名（不带 @）
+  script.setAttribute('data-size', 'large')
+  script.setAttribute('data-userpic', 'false')
+  script.setAttribute('data-radius', '8')
+  script.setAttribute('data-lang', 'zh')
+  script.setAttribute('data-onauth', 'onTelegramAuth(user)')
+  script.setAttribute('data-request-access', 'write')
+
+  const container = document.getElementById('telegram-login-button')
+  if (container) {
+    debugger
+    container.innerHTML = '' // 清空旧的（防止重复插入）
+    container.appendChild(script)
+  }
+
+}
+
+
+
 
 const currentWalletName = computed(() => {
   return wallets.value.find(w => w.adapter.connected)?.adapter.name || '';
@@ -257,6 +290,8 @@ onMounted(() => {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  width: 100vw;
+  height: 100vh;
 }
 
 .modal-overlay.active {
@@ -269,7 +304,8 @@ onMounted(() => {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 400px;
+  width: 40rem;
+  max-width: 500px;
   height: 100vh;
   background: #1e1e2e;
   border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -308,9 +344,10 @@ onMounted(() => {
 }
 
 .wallet-options {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 0.5rem;
+  overflow: auto;
 }
 
 .wallet-option {
@@ -324,13 +361,13 @@ onMounted(() => {
   color: white;
   cursor: pointer;
   transition: all 0.3s;
+  &:hover{
+    background: rgba(138, 43, 226, 0.2);
+    border-color: var(--primary-color);
+    border: 1px solid  rgba(138, 43, 226, 1);;
+  }
 }
 
-.wallet-option:hover {
-  background: rgba(138, 43, 226, 0.2);
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
 
 .wallet-icon {
   width: 24px;
@@ -372,6 +409,9 @@ onMounted(() => {
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wallet-address {
@@ -436,157 +476,9 @@ onMounted(() => {
     font-size: 1.2rem;
   }
 }
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
 
-.modal-overlay.active {
-  opacity: 1;
-  pointer-events: all;
-}
 
-.connect-modal {
-  position: fixed;
-  top: 0;
-  right: -100%;
-  width: 400px;
-  height: 100vh;
-  background: #1e1e2e;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
-  transition: right 0.3s ease;
-  padding: 2rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
 
-.connect-modal.active {
-  right: 0;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.modal-header h3 {
-  font-size: 1.5rem;
-  color: white;
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-}
-
-.wallet-options {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.wallet-option {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.wallet-option:hover {
-  background: rgba(138, 43, 226, 0.2);
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
-.wallet-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.connected-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding: 1rem 0;
-}
-
-.wallet-info {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  width: 100%;
-  padding: 1.5rem;
-  background: rgba(46, 204, 113, 0.1);
-  border-radius: 12px;
-  border: 1px solid rgba(46, 204, 113, 0.3);
-}
-
-.wallet-icon.large {
-  width: 48px;
-  height: 48px;
-}
-
-.wallet-details {
-  flex: 1;
-  overflow: hidden;
-}
-
-.wallet-name {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  color: white;
-}
-
-.wallet-address {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  word-break: break-all;
-}
-
-.disconnect-btn {
-  width: 100%;
-  padding: 1rem;
-  background: rgba(231, 76, 60, 0.1);
-  color: #e74c3c;
-  border: 1px solid rgba(231, 76, 60, 0.3);
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.disconnect-btn:hover {
-  background: rgba(231, 76, 60, 0.2);
-}
 
 /* 社交账号绑定样式 */
 .social-bindings {

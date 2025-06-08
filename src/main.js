@@ -34,6 +34,11 @@ import App from './App.vue';
 
 import './style.css';
 
+window.onTelegramAuth = function(user) {
+    console.log('✅ Telegram 登录成功:', user);
+    alert('登录成功: ' + JSON.stringify(user));
+};
+
 const walletOptions = {
     wallets: [
         new PhantomWalletAdapter(),

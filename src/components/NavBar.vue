@@ -223,14 +223,13 @@ const toggleMobileMenu = () => {
 .connect-btn {
   background: rgba(138, 43, 226, 0.2);
   border: 1px solid var(--primary-color);
-  padding: 0.7rem 1.4rem;
+  padding: 0 1.4rem;
   border-radius: 8px;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  height: 3rem;
+  line-height: 2.8rem;
   transition: all 0.3s;
   cursor: pointer;
+  font-size: 1.2rem;
 }
 
 .connect-btn:hover {
