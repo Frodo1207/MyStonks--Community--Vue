@@ -12,6 +12,7 @@ export function walletLoginOut(data) {
     return request.post('/v1/auth/logout', data);
 }
 
+
 export function walletLoginRefresh(data) {
     return request.post('/v1/auth/refresh', data);
 }

@@ -56,9 +56,11 @@ const isModalOpen = ref(false);
 watch(
     () => connected.value,
     async (newConnected) => {
+
       const hasLogin = sessionStorage.getItem('access_token')
       if (newConnected && publicKey.value && !hasLogin) {
         const random = await getRandom()
+        debugger
         if(random.status !== 'error') {
           const address = publicKey.value.toBase58()
           const message = new TextEncoder().encode(random.nonce)

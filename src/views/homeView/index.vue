@@ -20,6 +20,7 @@
         :activities="sortedActivities"
     />
   </div>
+
 </template>
 
 <script setup>
@@ -35,25 +36,24 @@
   const { sortedActivities } = storeToRefs(activityStore)
   const loginUserInfoStore = userInfoStore()
   const loginUserInfo  = loginUserInfoStore.getUserInfo
-  console.log(loginUserInfoStore.getUserInfo.username,66666);
+
   // 打印检查数据
  // console.log('Initial sortedActivities:', sortedActivities.value)
 
 
   const handleTaskAction = () => {
-    console.log('任务按钮被点击');
     // 这里可以添加处理逻辑，比如跳转页面或打开弹窗
   };
 
 
-  function onTelegramAuth(user) {
-    debugger
-    console.log('Telegram user:', user)
-    // 发请求到后端...
-  }
+
+
+
 
   const bindTelegram = () => {
-    console.log('绑定账号被点击');
+    console.log('绑定账号被点击',11111);
+    // 将回调函数挂载到 window
+    window.onTelegramAuth = onTelegramAuth
     const script = document.createElement('script')
     script.src = 'https://telegram.org/js/telegram-widget.js?7'
     script.async = true
@@ -62,15 +62,20 @@
     script.setAttribute('data-userpic', 'false')
     script.setAttribute('data-radius', '8')
     script.setAttribute('data-lang', 'zh')
-    script.setAttribute('data-callback', 'onTelegramAuth')
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)')
     script.setAttribute('data-request-access', 'write')
 
-    document.getElementById('telegram-login-button').appendChild(script)
-    console.log('✅ Telegram Widget 加载完成')
-    window.onTelegramAuth = onTelegramAuth
+    const container = document.getElementById('telegram-login-button')
+    if (container) {
+      debugger
+      container.innerHTML = '' // 清空旧的（防止重复插入）
+      container.appendChild(script)
+    }
+
   }
 
   onMounted(() => {
+    window.onTelegramAuth = onTelegramAuth
   // 组件挂载后再次打印，确保数据已加载
   //console.log('sortedActivities after mount:', sortedActivities.value)
 

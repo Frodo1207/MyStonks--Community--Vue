@@ -1,9 +1,10 @@
-import axios from "axios";
+/*import axios from "axios";
 
 const service = axios.create({
     baseURL: 'http://localhost:8000/', // ✅ 使用代理路径
     timeout: 30000,
-});
+});*/
+import service from '@/utils/request.js'
 
 /** 获取新手任务 */
 export async function getNewbieTasks() {

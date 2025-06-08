@@ -34,6 +34,11 @@ import App from './App.vue';
 
 import './style.css';
 
+window.onTelegramAuth = function(user) {
+    console.log('✅ Telegram 登录成功:', user);
+    alert('登录成功: ' + JSON.stringify(user));
+};
+
 const walletOptions = {
     wallets: [
         new PhantomWalletAdapter(),
@@ -57,7 +62,7 @@ const walletOptions = {
         new HyperPayWalletAdapter(),
       //  new NovaWalletAdapter(),
      //   new RWalletAdapter(),
-        new WalletConnectWalletAdapter({ network: ' solana',
+        new WalletConnectWalletAdapter({ network: 'solana',
             options: {
                 projectId: 'YOUR_PROJECT_ID' // 替换为实际 Project ID
             }}), // 支持 WalletConnect
