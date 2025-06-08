@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     // 允许的主机列表
     allowedHosts: [
-      '7ddf-2408-8266-3-3e33-2106-62f0-1172-58b5.ngrok-free.app' // 允许特定域名
+      '59d9-2408-8266-3-86b-f5de-b43c-146-2a34.ngrok-free.app' // 允许特定域名
     ],
     proxy: {
       '/api': {

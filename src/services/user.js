@@ -12,11 +12,10 @@ export function walletLoginOut(data) {
     return request.post('/v1/auth/logout', data);
 }
 
+
 export function walletLoginRefresh(data) {
     return request.post('/v1/auth/refresh', data);
 }
-
-
 
 /** 获取登陆随机数*/
 export function getRandom(){

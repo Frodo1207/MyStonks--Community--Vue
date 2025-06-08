@@ -19,28 +19,38 @@
       </div>
 
       <div class="nav-right">
-        <wallet-multi-button class="wallet-connect"></wallet-multi-button>
-<!--        <div class="wallet-connect" @click="emit('connect')">
-&lt;!&ndash;          <span v-if="!connected"></span>&ndash;&gt;
-
-          <span v-else class="wallet-address">{{ truncatedAddress }}</span>
-        </div>-->
+        <div v-if="connected" class="wallet-connected" @click="openModal">
+          <span class="wallet-address">{{ truncatedAddress }}</span>
+          <span class="connected-indicator"></span>
+          <button class="disconnect-btn" @click="disconnectWallet">断开</button>
+        </div>
+        <div v-else class="connect-btn" @click="openModal">connect</div>
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
           <div class="hamburger" :class="{ 'active': showMobileMenu }"></div>
         </button>
       </div>
     </div>
+
+    <!-- 使用独立的钱包连接组件 -->
+    <WalletModal
+        v-model:show-modal="showConnectModal"
+        :wallet-address="walletAddress"
+        @disconnect="disconnectWallet"
+    />
   </nav>
 </template>
 
-
 <script setup>
-import { ref, computed } from 'vue';
-import { WalletMultiButton } from 'solana-wallets-vue'
+import { ref, computed, onMounted } from 'vue';
+import { useWallet } from 'solana-wallets-vue';
+import WalletModal from './WalletModal.vue';
+
+const { connected, publicKey, disconnect } = useWallet();
+
+const showConnectModal = ref(false);
+const showMobileMenu = ref(false);
 
 const props = defineProps({
-  connected: Boolean,
-  walletAddress: String,
   logoPart1: {
     type: String,
     default: 'MyStonks'
@@ -51,9 +61,6 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['connect']);
-
-const showMobileMenu = ref(false);
 const navLinks = ref([
   { path: '/', name: '首页' },
   { path: '/taskcenter', name: '任务中心' },
@@ -62,12 +69,29 @@ const navLinks = ref([
   { path: '/merch', name: '社区周边' }
 ]);
 
+const walletAddress = computed(() => {
+  return publicKey.value?.toString() || '';
+});
+
 const truncatedAddress = computed(() => {
-  if (props.walletAddress.length > 0) {
-    return `${props.walletAddress.substring(0, 6)}...${props.walletAddress.substring(38)}`;
+  if (publicKey.value) {
+    const address = publicKey.value.toString();
+    return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
   }
   return '';
 });
+
+const disconnectWallet = async () => {
+  try {
+    await disconnect();
+  } catch (error) {
+    console.error('断开连接失败:', error);
+  }
+};
+
+const openModal = () => {
+  showConnectModal.value = true;
+};
 
 const toggleMobileMenu = () => {
   showMobileMenu.value = !showMobileMenu.value;
@@ -75,6 +99,50 @@ const toggleMobileMenu = () => {
 </script>
 
 <style scoped>
+/* 原有的样式保持不变 */
+.navbar {
+  position: sticky;
+  top: 0;
+  background: rgba(30, 30, 46, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  padding: 0.8rem 0;
+}
+
+.nav-container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background 0.3s;
+  text-decoration: none;
+}
+
+.logo:hover {
+  background: rgba(138, 43, 226, 0.1);
+}
+
+.logo span {
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .nav-links {
   display: flex;
   gap: 2rem;
@@ -109,6 +177,91 @@ const toggleMobileMenu = () => {
   width: 50%;
   height: 2px;
   background: var(--primary-color);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.wallet-connected {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: rgba(46, 204, 113, 0.2);
+  border: 1px solid rgba(46, 204, 113, 0.5);
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: default;
+}
+
+.connected-indicator {
+  width: 8px;
+  height: 8px;
+  background: #2ecc71;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.disconnect-btn {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.disconnect-btn:hover {
+  background: rgba(231, 76, 60, 0.3);
+}
+
+.connect-btn {
+  background: rgba(138, 43, 226, 0.2);
+  border: 1px solid var(--primary-color);
+  padding: 0 1.4rem;
+  border-radius: 8px;
+  height: 3rem;
+  line-height: 2.8rem;
+  transition: all 0.3s;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.connect-btn:hover {
+  background: rgba(138, 43, 226, 0.3);
+  transform: translateY(-1px);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(46, 204, 113, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .wallet-connected {
+    padding: 0.6rem 1rem;
+    gap: 0.6rem;
+  }
+
+  .disconnect-btn {
+    padding: 0.1rem 0.4rem;
+  }
 }
 
 /* 移动端菜单 */
@@ -191,108 +344,76 @@ const toggleMobileMenu = () => {
   }
 }
 
-.navbar {
-  position: sticky;
-  top: 0;
-  background: rgba(30, 30, 46, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
-  padding: 0.8rem 0;
-}
-
-.nav-container {
-  width: 100%;
-  max-width: var(--container-width);
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.4rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  transition: background 0.3s;
-  text-decoration: none;
-}
-
-.logo:hover {
-  background: rgba(138, 43, 226, 0.1);
-}
-
-.logo span {
-  background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.wallet-connect {
-  background: rgba(138, 43, 226, 0.2);
-  border: 1px solid var(--primary-color);
-  padding: 0.7rem 1.4rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  transition: all 0.3s;
-  cursor: pointer;
-}
-
-.wallet-connect:hover {
-  background: rgba(138, 43, 226, 0.3);
-  transform: translateY(-1px);
-}
-
-.wallet-address {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.9rem;
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 @media (max-width: 768px) {
   .nav-container {
-    padding: 0 15px;
+    padding: 0 1rem;
+    position: relative;
   }
 
-  .logo {
-    font-size: 1.2rem;
-    padding: 0.5rem;
+  .nav-links {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 46, 0.98);
+    backdrop-filter: blur(10px);
+    flex-direction: column;
+    padding: 1rem 0;
+    gap: 0;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .wallet-connect {
+  .nav-links.mobile-menu {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .nav-item {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .nav-item:hover {
+    background: rgba(138, 43, 226, 0.15);
+  }
+
+  .active-link {
+    color: var(--primary-light);
+    background: rgba(138, 43, 226, 0.1);
+  }
+
+  .mobile-menu-btn {
+    display: block;
+    z-index: 1001;
+  }
+
+  .connect-btn {
     padding: 0.6rem 1rem;
     font-size: 0.85rem;
-  }
-
-  .wallet-address {
-    max-width: 120px;
+    margin-right: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .logo span {
-    display: none;
+  .logo {
+    font-size: 1.2rem;
   }
 
-  .wallet-address {
-    max-width: 100px;
+  .connect-btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .nav-links {
+    top: 56px;
   }
 }
 </style>

@@ -1,11 +1,14 @@
 <template>
-  <div id="app">
+  <div id="app" :class="{ 'blur-page': isModalOpen }">
     <!-- 导航栏 -->
     <NavBar
         :connected="connected"
         :wallet-address="walletAddress"
         @connect="connectWallet"
+        @open-modal="isModalOpen = true"
+        @close-modal="isModalOpen = false"
     />
+
     <!-- 动态背景光点 -->
     <div class="glow-effects">
       <div
@@ -38,66 +41,58 @@
 
 <script setup>
 import { watch } from 'vue'
-import {ref, computed, watchEffect} from 'vue';
+import { ref, computed } from 'vue';
 import NavBar from '@/components/NavBar.vue';
 import { useWallet } from 'solana-wallets-vue'
-import {getRandom, walletLogin, walletLoginOut} from "@/services/user.js";
+import { getRandom, walletLogin, walletLoginOut } from "@/services/user.js";
 import { Buffer } from 'buffer';
-import {userInfoStore} from "@/stores/userinfo.js";
+import { userInfoStore } from "@/stores/userinfo.js";
 
-const { publicKey, connected, wallet, sendTransaction } = useWallet()
-
+const { publicKey, connected, wallet } = useWallet()
 const userStore = userInfoStore();
+const isModalOpen = ref(false);
 
 // 监听连接状态变化
 watch(
     () => connected.value,
     async (newConnected) => {
-      const hasLogin  = sessionStorage.getItem('access_token')
-      // 点击连接钱包以后
-      if (newConnected && publicKey.value&& !hasLogin) {
 
+      const hasLogin = sessionStorage.getItem('access_token')
+      if (newConnected && publicKey.value && !hasLogin) {
         const random = await getRandom()
-        if(random.status!=='error'){
-          // 触发登录接口
+        debugger
+        if(random.status !== 'error') {
           const address = publicKey.value.toBase58()
-          // 构造签名消息（通常使用 nonce）
           const message = new TextEncoder().encode(random.nonce)
-          // 使用钱包签名
-          const signature = await wallet._rawValue.adapter.signMessage(message,'utf8')
+          const signature = await wallet._rawValue.adapter.signMessage(message, 'utf8')
           const signatureBase64 = Buffer.from(signature).toString('base64');
-          const response =await walletLogin({
+          const response = await walletLogin({
             address: address,
-            nonce:random.nonce,
+            nonce: random.nonce,
             signature: signatureBase64
           })
-          if(response.status!=='error'){
-            // 存储用户信息到 Pinia Store
+          if(response.status !== 'error') {
             userStore.setUserInfo({
               walletAddress: address,
               isAuthenticated: false,
               access_token: response.access_token,
-              refresh_token:response.refresh_token,
-              login:true
+              refresh_token: response.refresh_token,
+              login: true
             })
+
             sessionStorage.setItem('access_token',response.access_token);
             sessionStorage.setItem('refresh_token',response.refresh_token);
-
-
           }
-
         }
-      }else{
-        // 点击断开钱包以后
-        if(!publicKey.value){
-          const response = await walletLoginOut({ refresh_token :sessionStorage.getItem('refresh_token')})
-          if(response.status!=='error'){
+      } else {
+        if(!publicKey.value) {
+          const response = await walletLoginOut({ refresh_token: sessionStorage.getItem('refresh_token') })
+          if(response.status !== 'error') {
             userStore.$reset()
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('refresh_token');
           }
         }
-
       }
     }
 )
@@ -106,9 +101,11 @@ const walletAddress = computed(() => {
   return publicKey.value?.toBase58() || '未连接'
 })
 
-
+const connectWallet = (walletType) => {
+  console.log('Connecting wallet:', walletType)
+  // 这里实现钱包连接逻辑
+}
 </script>
-
 <style>
 /* 全局样式重置 */
 * {
@@ -148,6 +145,22 @@ body {
   backdrop-filter: blur(20px);
 }
 
+.blur-page {
+  position: relative;
+}
+
+.blur-page::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 998;
+  pointer-events: none;
+}
 /* ========== 导航栏样式 ========== */
 .navbar {
   position: sticky;
