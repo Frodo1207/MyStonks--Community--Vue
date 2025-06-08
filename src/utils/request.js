@@ -20,7 +20,6 @@ service.interceptors.request.use(
         return config;
     },
     (error) => {
-
         return {...error,status:'error',};
     }
 );

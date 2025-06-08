@@ -127,7 +127,7 @@ const selectWallet = async (wallet) => {
     if (!wallet.adapter.connected && !wallet.adapter.connecting) {
       select(wallet.adapter.name);
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     await connect();
@@ -147,11 +147,16 @@ const selectWallet = async (wallet) => {
     }
   }
 };
+
 const disconnectWallet = async () => {
   try {
     await disconnect();
+    localStorage.removeItem("solAddr");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     emit('disconnect');
     closeModal();
+    console.log("钱包已断开，本地数据已清除");
   } catch (error) {
     console.error('断开连接失败:', error);
   }
@@ -172,7 +177,7 @@ const bindTwitter = () => {
 const isLoggingIn = ref(false);
 
 const login = async () => {
-  // get nonce
+  // 获取nonce
   let res = await getRandom()
 
   const solAddr = publicKey.value.toBase58()
@@ -180,15 +185,17 @@ const login = async () => {
   const signature = await wallet._rawValue.adapter.signMessage(message, 'utf8')
   const signatureBase64 = Buffer.from(signature).toString('base64');
 
-  console.log(signatureBase64)
+  // login，获取 token
   res = await walletLogin({
     address: solAddr,
     signature: signatureBase64,
     nonce: res.nonce,
   })
 
-  console.log(res)
-  //
+  // 存储到 localStorage
+  localStorage.setItem("solAddr", solAddr);
+  localStorage.setItem("access_token", res.access_token);
+  localStorage.setItem("refresh_token", res.refresh_token);
 }
 
 const handleWalletLogin = async () => {

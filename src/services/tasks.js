@@ -1,23 +1,22 @@
-import axios from "axios";
+import service from "@/utils/request.js";
 
-const service = axios.create({
-    baseURL: 'http://localhost:8000/', // ✅ 使用代理路径
-    timeout: 30000,
-});
 
 /** 获取新手任务 */
 export async function getNewbieTasks() {
-    return await service.get('api/v1/tasks?category=newbie');
+    var addr = localStorage.getItem("solAddr");
+    return await service.get('api/v1/tasks?category=newbie&addr=' + addr);
 }
 
 /** 获取每日任务 */
 export async function getDailyTasks() {
-    return await service.get('api/v1/tasks?category=daily');
+    var addr = localStorage.getItem("solAddr");
+    return await service.get('api/v1/tasks?category=daily&addr=' + addr);
 }
 
 /** 获取其他任务 */
 export async function getOtherTasks() {
-    return await service.get('api/v1/tasks?category=other');
+    var addr = localStorage.getItem("solAddr");
+    return await service.get('api/v1/tasks?category=other&addr=' + addr);
 }
 
 /** 获取用户任务系统信息 */
@@ -31,6 +30,7 @@ export async function checkTaskIsComplete(userid, task_id) {
 }
 
 /** 获取用户任务完成情况 */
-export async function getStonksTradeRes(addr) {
+export async function getStonksTradeRes() {
+    var addr = localStorage.getItem("solAddr");
     return await service.get('/api/v1/task/stonks/trade?sol_address=' + addr);
 }

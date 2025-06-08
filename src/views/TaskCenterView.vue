@@ -85,7 +85,7 @@
           <span class="address">{{ formatAddress(user.address) }}</span>
           <span v-if="user.isCurrentUser" class="you-tag">你</span>
         </div>
-        <span class="points">{{ user.points.toLocaleString() }}</span>
+        <span class="points">{{ totalPoints }}</span>
       </div>
     </div>
   </div>
@@ -176,9 +176,9 @@ const handleTaskAction = async (task) => {
 
     try {
       console.log('开始执行stonks_trade操作');
-      let res = await getStonksTradeRes("9DqeqSpLV5CX2rp7hr5SMgbdwtj2qFaw96s6aJsCnjmq");
+      let res = await getStonksTradeRes();
       console.log('操作结果:', res);
-      if (res.data.is_trade) {
+      if (res.is_trade) {
         console.log("gooooooood")
         alert('goood');
       }
@@ -189,11 +189,9 @@ const handleTaskAction = async (task) => {
       return
     } catch (error) {
       console.error('验证失败', error);
-      // 可以在这里添加错误提示
-      // showToast('验证失败: ' + error.message, 'error');
+
       return
     } finally {
-      // 添加一点延迟让用户看到状态变化
       setTimeout(() => {
         loading.value = false;
       }, 300);
@@ -244,34 +242,35 @@ onMounted(async () => {
     updateCountdown()
   }, 1000)
 
-  try {
-    const [userResp, dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
-      getUserTasksInfo(),
-      getDailyTasks(),
-      getNewbieTasks(),
-      getOtherTasks()
-    ])
+  let addr = localStorage.getItem("solAddr")
 
-    const userData = userResp?.data?.data || {}
-    completedTasks.value = userData.tasks?.length || 0
-    totalPoints.value = userData.point || 0
-    currentLevel.value = userData.rank || 0
-    currentUserId.value = userData.user_id
-    currentUserName.value = userData.user_name
+  let userResp = await getUserTasksInfo(addr)
+  console.log(userResp)
 
-    if (dailyTaskResp?.data?.data) dailyTasks.value = dailyTaskResp.data.data
-    if (newbieTaskResp?.data?.data) newbieTasks.value = newbieTaskResp.data.data
-    if (otherTasksResp?.data?.data) otherTasks.value = otherTasksResp.data.data
+  totalPoints.value = userResp.point
 
-    leaderboard.value = [
-      { id: 1, address: '0x3f5C...', points: 12500, isCurrentUser: false },
-      { id: 2, address: '0xDec8...', points: 9800, isCurrentUser: false },
-      { id: 9, address: '0x4B59...', points: userData.point, isCurrentUser: true }
-    ]
+  console.log(totalPoints)
 
-  } catch (error) {
-    console.error("初始化任务中心失败:", error)
-  }
+  const [dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
+    getDailyTasks(),
+    getNewbieTasks(),
+    getOtherTasks()
+  ])
+
+  console.log(dailyTaskResp)
+  console.log(newbieTaskResp)
+  console.log(otherTasksResp)
+
+  dailyTasks.value = dailyTaskResp
+  newbieTasks.value = newbieTaskResp
+  otherTasks.value = otherTasksResp
+
+  leaderboard.value = [
+    { id: 1, address: '0x3f5C...', points: 12500, isCurrentUser: false },
+    { id: 2, address: '0xDec8...', points: 9800, isCurrentUser: false },
+  ]
+
+
 })
 </script>
 <style scoped>
