@@ -285,6 +285,7 @@ const toggleMobileMenu = () => {
 .hamburger::after {
   content: '';
   position: absolute;
+  left: 0;
   width: 100%;
   height: 2px;
   background: white;
@@ -363,10 +364,10 @@ const toggleMobileMenu = () => {
     transform: translateY(-100%);
     opacity: 0;
     transition: all 0.3s ease;
-    z-index: 999;
     max-height: calc(100vh - 60px);
     overflow-y: auto;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: -1;
   }
 
   .nav-links.mobile-menu {
@@ -396,8 +397,10 @@ const toggleMobileMenu = () => {
   }
 
   .connect-btn {
+    display: flex;
+    align-items: center;
     padding: 0.6rem 1rem;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
     margin-right: 0.5rem;
   }
 }
