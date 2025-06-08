@@ -5,7 +5,7 @@ export function getUserInfo() {
 }
 
 export function walletLogin(data) {
-    return request.post('/v1/auth/login', data);
+    return request.post('/api/v1/auth/login', data);
 }
 
 export function walletLoginOut(data) {
@@ -18,7 +18,7 @@ export function walletLoginRefresh(data) {
 
 /** 获取登陆随机数*/
 export function getRandom(){
-    return request.get('/v1/auth/nonce');
+    return request.get('/api/v1/auth/nonce');
 }
 
 /** 刷新令牌 */

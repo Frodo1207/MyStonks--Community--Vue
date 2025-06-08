@@ -68,14 +68,13 @@
             :key="wallet.name"
             class="wallet-option"
             @click="selectWallet(wallet)"
+            :disabled="!wallet.adapter.readyState"
         >
-          <img
-              v-if="wallet.icon"
-              :src="wallet.icon"
-              :alt="wallet.name"
-              class="wallet-icon"
-          >
-          <span>{{ wallet.name }}</span>
+          <img :src="wallet.icon" class="wallet-icon">
+          <span>
+    {{ wallet.name }}
+    <span v-if="!wallet.adapter.readyState" class="uninstalled-tip">(需安装)</span>
+  </span>
         </button>
       </div>
     </div>
@@ -85,8 +84,8 @@
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
 import { useWallet } from 'solana-wallets-vue';
-
-const { connected, publicKey, connect, disconnect, select, wallets } = useWallet();
+import {getRandom, walletLogin} from "@/services/user.js";
+const { connected, publicKey, connect, disconnect, select, wallet, wallets } = useWallet();
 
 const props = defineProps({
   showModal: Boolean,
@@ -101,8 +100,6 @@ const isTwitterBound = ref(false);
 
 // Telegram 相关状态
 const telegramUsername = ref('');
-const telegramId = ref('');
-const telegramAuthUrl = ref('');
 
 const walletProviders = computed(() => {
   return wallets.value.map(wallet => ({
@@ -111,52 +108,7 @@ const walletProviders = computed(() => {
     adapter: wallet.adapter
   }));
 });
-// 初始化 Telegram 登录
-const initiateTelegramLogin = () => {
-  if (isTelegramBound.value) return;
 
-  // 创建 Telegram 登录小部件
-  const botUsername = 'YourBotUsername'; // 替换为你的 Telegram Bot 用户名
-  const redirectUrl = encodeURIComponent(window.location.origin + window.location.pathname);
-
-  // 设置 Telegram 登录小部件参数
-  const widgetParams = {
-    bot_id: botUsername,
-    origin: window.location.origin,
-    request_access: true,
-    lang: 'zh',
-    userpic: false
-  };
-  console.log(1111
-  )
-  // 创建 iframe 或弹出窗口
-  const widgetUrl = `https://oauth.telegram.org/auth?bot_id=${botUsername}&origin=${encodeURIComponent(window.location.origin)}&embed=1&request_access=true&return_to=${redirectUrl}`;
-
-  // 方法1: 使用 iframe (推荐)
-  const iframe = document.createElement('iframe');
-  iframe.src = widgetUrl;
-  iframe.style.position = 'fixed';
-  iframe.style.top = '0';
-  iframe.style.left = '0';
-  iframe.style.width = '100%';
-  iframe.style.height = '100%';
-  iframe.style.zIndex = '9999';
-  iframe.style.border = 'none';
-  iframe.style.backgroundColor = 'rgba(0,0,0,0.5)';
-  document.body.appendChild(iframe);
-
-  // 监听消息事件
-  window.addEventListener('message', (e) => {
-    if (e.origin === 'https://oauth.telegram.org') {
-      if (e.data.event === 'auth_result') {
-        if (e.data.result === 'success') {
-          handleTelegramAuthSuccess(e.data.auth);
-        }
-        document.body.removeChild(iframe);
-      }
-    }
-  });
-};
 
 const currentWalletName = computed(() => {
   return wallets.value.find(w => w.adapter.connected)?.adapter.name || '';
@@ -172,14 +124,29 @@ const closeModal = () => {
 
 const selectWallet = async (wallet) => {
   try {
-    select(wallet.adapter.name);
+    if (!wallet.adapter.connected && !wallet.adapter.connecting) {
+      select(wallet.adapter.name);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     await connect();
+
     closeModal();
   } catch (error) {
     console.error('钱包连接错误:', error);
+
+    if (error.message.includes('WalletNotSelected')) {
+      alert('⚠️ 请先选择钱包');
+    } else if (error.message.includes('WalletNotFound')) {
+      alert('🔌 请先安装钱包插件');
+    } else if (error.message.includes('User rejected')) {
+      alert('❌ 您拒绝了连接请求');
+    } else {
+      alert(`连接失败: ${error.message}`);
+    }
   }
 };
-
 const disconnectWallet = async () => {
   try {
     await disconnect();
@@ -196,8 +163,7 @@ watch(connected, async (newVal) => {
 });
 // 绑定Twitter
 const bindTwitter = () => {
-  // 这里应该实现实际的Twitter绑定逻辑
-  // 例如打开Twitter OAuth授权页面
+
   window.open('https://twitter.com/i/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI', '_blank');
   // 模拟绑定成功
   isTwitterBound.value = true;
@@ -205,8 +171,30 @@ const bindTwitter = () => {
 
 const isLoggingIn = ref(false);
 
+const login = async () => {
+  // get nonce
+  let res = await getRandom()
+
+  const solAddr = publicKey.value.toBase58()
+  const message = new TextEncoder().encode(res.nonce)
+  const signature = await wallet._rawValue.adapter.signMessage(message, 'utf8')
+  const signatureBase64 = Buffer.from(signature).toString('base64');
+
+  console.log(signatureBase64)
+  res = await walletLogin({
+    address: solAddr,
+    signature: signatureBase64,
+    nonce: res.nonce,
+  })
+
+  console.log(res)
+  //
+}
+
 const handleWalletLogin = async () => {
   isLoggingIn.value = true;
+  let addr = publicKey.value
+  let res = await login()
 
   setTimeout(() => {
     // 隐藏加载弹窗
@@ -221,7 +209,6 @@ const handleWalletLogin = async () => {
 // 组件挂载时检查 Telegram 授权
 onMounted(() => {
 
-  // 检查本地存储中是否有已绑定的 Telegram 账号
   const savedTgData = localStorage.getItem('telegramAuth');
   if (savedTgData) {
     try {
@@ -733,5 +720,15 @@ onMounted(() => {
   color: white;
   margin-top: 1rem;
   font-size: 1rem;
+}
+.uninstalled-tip {
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.5);
+  margin-left: 5px;
+}
+
+.wallet-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

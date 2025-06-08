@@ -40,69 +40,13 @@
 </template>
 
 <script setup>
-import { watch } from 'vue'
 import { ref, computed } from 'vue';
 import NavBar from '@/components/NavBar.vue';
-import { useWallet } from 'solana-wallets-vue'
-import { getRandom, walletLogin, walletLoginOut } from "@/services/user.js";
-import { Buffer } from 'buffer';
 import { userInfoStore } from "@/stores/userinfo.js";
 
-const { publicKey, connected, wallet } = useWallet()
 const userStore = userInfoStore();
 const isModalOpen = ref(false);
 
-// 监听连接状态变化
-watch(
-    () => connected.value,
-    async (newConnected) => {
-      const hasLogin = sessionStorage.getItem('access_token')
-      if (newConnected && publicKey.value && !hasLogin) {
-        const random = await getRandom()
-        if(random.status !== 'error') {
-          const address = publicKey.value.toBase58()
-          const message = new TextEncoder().encode(random.nonce)
-          const signature = await wallet._rawValue.adapter.signMessage(message, 'utf8')
-          const signatureBase64 = Buffer.from(signature).toString('base64');
-          const response = await walletLogin({
-            address: address,
-            nonce: random.nonce,
-            signature: signatureBase64
-          })
-          if(response.status !== 'error') {
-            userStore.setUserInfo({
-              walletAddress: address,
-              isAuthenticated: false,
-              access_token: response.access_token,
-              refresh_token: response.refresh_token,
-              login: true
-            })
-
-            sessionStorage.setItem('access_token',response.access_token);
-            sessionStorage.setItem('refresh_token',response.refresh_token);
-          }
-        }
-      } else {
-        if(!publicKey.value) {
-          const response = await walletLoginOut({ refresh_token: sessionStorage.getItem('refresh_token') })
-          if(response.status !== 'error') {
-            userStore.$reset()
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('refresh_token');
-          }
-        }
-      }
-    }
-)
-
-const walletAddress = computed(() => {
-  return publicKey.value?.toBase58() || '未连接'
-})
-
-const connectWallet = (walletType) => {
-  console.log('Connecting wallet:', walletType)
-  // 这里实现钱包连接逻辑
-}
 </script>
 <style>
 /* 全局样式重置 */

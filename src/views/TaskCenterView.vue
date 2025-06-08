@@ -1,5 +1,12 @@
 <template>
   <div class="task-center-page">
+    <!-- Loading 弹窗 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>处理中，请稍候...</p>
+      </div>
+    </div>
     <!-- 顶部横幅 -->
     <div class="task-banner">
       <div class="banner-content">
@@ -85,11 +92,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import TaskCard from '@/components/TaskCard.vue'
 import NewbieTaskList from '@/components/NewbieTaskList.vue'
 import OtherTasksGrid from '@/components/OtherTasksGrid.vue'
-import { getDailyTasks, getNewbieTasks, getOtherTasks, getUserTasksInfo, checkTaskIsComplete } from "@/services/tasks.js"
+import {
+  getDailyTasks,
+  getNewbieTasks,
+  getOtherTasks,
+  getUserTasksInfo,
+  checkTaskIsComplete,
+  getStonksTradeRes,
+} from "@/services/tasks.js"
+
+const loading = ref(false)
 
 // 用户数据
 const completedTasks = ref(0)
@@ -107,8 +123,20 @@ const dailyTasks = ref([])
 const otherTasks = ref([])
 
 // 倒计时显示
-const refreshTime = ref('12:34:56')
+const refreshTime = ref('00:00:00')
 
+function updateCountdown() {
+  const now = new Date()
+  const tomorrow = new Date()
+  tomorrow.setHours(24, 0, 0, 0) // 设置为明天0点
+  const diff = tomorrow - now
+
+  const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0')
+  const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0')
+  const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0')
+
+  refreshTime.value = `${hours}:${minutes}:${seconds}`
+}
 // 方法：格式化钱包地址
 const formatAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`
 
@@ -123,7 +151,13 @@ const getRankClass = (rank) => {
 const allNewbieTasksCompleted = computed(() => {
   return newbieTasks.value.length > 0 && newbieTasks.value.every(task => task.completed)
 })
-
+watch(loading, (val) => {
+  if (val) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
 const handleTaskAction = async (task) => {
   // 处理特殊动作任务
   console.log(task)
@@ -137,6 +171,35 @@ const handleTaskAction = async (task) => {
     return
   }
 
+  if (task.special_action === 'stonks_trade') {
+    loading.value = true; // 开始显示loading弹框
+
+    try {
+      console.log('开始执行stonks_trade操作');
+      let res = await getStonksTradeRes("9DqeqSpLV5CX2rp7hr5SMgbdwtj2qFaw96s6aJsCnjmq");
+      console.log('操作结果:', res);
+      if (res.data.is_trade) {
+        console.log("gooooooood")
+        alert('goood');
+      }
+      else {
+        console.log("bad")
+        alert('bad');
+      }
+      return
+    } catch (error) {
+      console.error('验证失败', error);
+      // 可以在这里添加错误提示
+      // showToast('验证失败: ' + error.message, 'error');
+      return
+    } finally {
+      // 添加一点延迟让用户看到状态变化
+      setTimeout(() => {
+        loading.value = false;
+      }, 300);
+    }
+    return;
+  }
   // 阻止日常和其他任务的点击，若新手任务未完成
   const isRestrictedTask = dailyTasks.value.concat(otherTasks.value).some(t => t.id === task.id)
   if (!allNewbieTasksCompleted.value && isRestrictedTask) {
@@ -178,7 +241,7 @@ const markTaskComplete = (taskId) => {
 onMounted(async () => {
   // 模拟倒计时
   setInterval(() => {
-    refreshTime.value = '11:23:45' // 实际应使用动态倒计时逻辑
+    updateCountdown()
   }, 1000)
 
   try {
@@ -420,6 +483,44 @@ onMounted(async () => {
 
   .points {
     padding-right: 0.5rem;
+  }
+}
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: white;
+  font-size: 1rem;
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid var(--primary-light, #8a2be2); /* fallback 紫色 */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>
