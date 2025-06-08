@@ -62,7 +62,7 @@ const walletOptions = {
         new HyperPayWalletAdapter(),
       //  new NovaWalletAdapter(),
      //   new RWalletAdapter(),
-        new WalletConnectWalletAdapter({ network: ' solana',
+        new WalletConnectWalletAdapter({ network: 'solana',
             options: {
                 projectId: 'YOUR_PROJECT_ID' // 替换为实际 Project ID
             }}), // 支持 WalletConnect

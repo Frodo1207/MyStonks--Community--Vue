@@ -346,25 +346,31 @@ onMounted(() => {
 .wallet-options {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 0.5rem;
+  gap: 0.8rem;
   overflow: auto;
 }
 
 .wallet-option {
   display: flex;
   align-items: center;
+  height: 56px;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
   cursor: pointer;
   transition: all 0.3s;
+  font-size: 16px;
   &:hover{
     background: rgba(138, 43, 226, 0.2);
     border-color: var(--primary-color);
-    border: 1px solid  rgba(138, 43, 226, 1);;
+    border: 1px solid  rgba(138, 43, 226, 1);
+  }
+  img{
+    width: 30px;
+    height: 30px;
   }
 }
 
