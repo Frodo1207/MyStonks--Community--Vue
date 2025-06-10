@@ -103,6 +103,7 @@ import {
   getUserTasksInfo,
   checkTaskIsComplete,
   getStonksTradeRes,
+  completeTask,
 } from "@/services/tasks.js"
 
 const loading = ref(false)
@@ -160,9 +161,9 @@ watch(loading, (val) => {
 })
 const handleTaskAction = async (task) => {
   // 处理特殊动作任务
-  console.log(task)
-  if (task.special_action === 'login_popup') {
-    alert('请先登录钱包以完成该任务')
+  let addr = localStorage.getItem("solAddr")
+  if (!addr) {
+    alert('Plz login first')
     return
   }
 
@@ -170,7 +171,15 @@ const handleTaskAction = async (task) => {
     alert('请先绑定TG账户以完成该任务')
     return
   }
-
+  if (task.special_action === 'first_bind_wallet') {
+    loading.value = true; // 开始显示loading弹框
+    let res = await completeTask(task.id)
+    setTimeout(() => {
+      loading.value = false;
+    }, 2000);
+    console.log(res)
+    return
+  }
   if (task.special_action === 'stonks_trade') {
     loading.value = true; // 开始显示loading弹框
 
@@ -179,11 +188,9 @@ const handleTaskAction = async (task) => {
       let res = await getStonksTradeRes();
       console.log('操作结果:', res);
       if (res.is_trade) {
-        console.log("gooooooood")
         alert('goood');
       }
       else {
-        console.log("bad")
         alert('bad');
       }
       return
@@ -235,6 +242,29 @@ const markTaskComplete = (taskId) => {
   update(otherTasks.value)
 }
 
+const refreshTask = async () => {
+  let userResp = await getUserTasksInfo(addr)
+  console.log(userResp)
+
+  totalPoints.value = userResp.point
+  completedTasks.value = userResp.tasks.length
+  console.log(totalPoints)
+
+  const [dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
+    getDailyTasks(),
+    getNewbieTasks(),
+    getOtherTasks()
+  ])
+
+  console.log(dailyTaskResp)
+  console.log(newbieTaskResp)
+  console.log(otherTasksResp)
+
+  dailyTasks.value = dailyTaskResp
+  newbieTasks.value = newbieTaskResp
+  otherTasks.value = otherTasksResp
+}
+
 // 数据加载
 onMounted(async () => {
   // 模拟倒计时
@@ -243,13 +273,14 @@ onMounted(async () => {
   }, 1000)
 
   let addr = localStorage.getItem("solAddr")
+  if (addr) {
+    let userResp = await getUserTasksInfo(addr)
+    console.log(userResp)
 
-  let userResp = await getUserTasksInfo(addr)
-  console.log(userResp)
-
-  totalPoints.value = userResp.point
-
-  console.log(totalPoints)
+    totalPoints.value = userResp.point
+    completedTasks.value = userResp.tasks.length
+    console.log(totalPoints)
+  }
 
   const [dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
     getDailyTasks(),

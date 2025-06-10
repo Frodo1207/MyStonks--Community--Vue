@@ -22,9 +22,8 @@
         <div v-if="connected" class="wallet-connected" @click="openModal">
           <span class="wallet-address">{{ truncatedAddress }}</span>
           <span class="connected-indicator"></span>
-          <button class="disconnect-btn" @click="disconnectWallet">断开</button>
         </div>
-        <div v-else class="connect-btn" @click="openModal">connect</div>
+        <div v-else class="connect-btn" @click="openModal">Connect</div>
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
           <div class="hamburger" :class="{ 'active': showMobileMenu }"></div>
         </button>
@@ -80,14 +79,6 @@ const truncatedAddress = computed(() => {
   }
   return '';
 });
-
-const disconnectWallet = async () => {
-  try {
-    await disconnect();
-  } catch (error) {
-    console.error('断开连接失败:', error);
-  }
-};
 
 const openModal = () => {
   showConnectModal.value = true;

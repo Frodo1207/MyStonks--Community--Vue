@@ -83,9 +83,12 @@
 
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router'
 import { useWallet } from 'solana-wallets-vue';
 import {getRandom, walletLogin} from "@/services/user.js";
 const { connected, publicKey, connect, disconnect, select, wallet, wallets } = useWallet();
+
+const router = useRouter()
 
 const props = defineProps({
   showModal: Boolean,
@@ -156,12 +159,18 @@ const disconnectWallet = async () => {
     localStorage.removeItem("refresh_token");
     emit('disconnect');
     closeModal();
+    await router.push('/') // 跳转到首页
     console.log("钱包已断开，本地数据已清除");
   } catch (error) {
     console.error('断开连接失败:', error);
   }
 };
 watch(connected, async (newVal) => {
+  var addr = localStorage.getItem("solAddr");
+  if (addr) {
+    return;
+  }
+
   if (newVal && publicKey.value) {
     await handleWalletLogin();
   }
@@ -196,6 +205,8 @@ const login = async () => {
   localStorage.setItem("solAddr", solAddr);
   localStorage.setItem("access_token", res.access_token);
   localStorage.setItem("refresh_token", res.refresh_token);
+
+  router.push('/') // 跳转到首页
 }
 
 const handleWalletLogin = async () => {

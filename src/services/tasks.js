@@ -34,3 +34,8 @@ export async function getStonksTradeRes() {
     var addr = localStorage.getItem("solAddr");
     return await service.get('/api/v1/task/stonks/trade?sol_address=' + addr);
 }
+
+export async function completeTask(task_id) {
+    var addr = localStorage.getItem("solAddr");
+    return await service.get('/api/v1/task/finish?addr=' + addr + "&task_id="+ task_id);
+}
