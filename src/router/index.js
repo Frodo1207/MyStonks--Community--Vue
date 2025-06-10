@@ -26,7 +26,7 @@ const routes = [
     {
         path: '/governance',
         name: 'Governance',
-        component: () => import('@/views/GovernanceView.vue')
+        component: () => import('@/views/CommunityMerchView.vue')
     },
     {
         path: '/merch',

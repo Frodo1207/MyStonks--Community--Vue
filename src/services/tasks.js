@@ -1,6 +1,5 @@
 import service from "@/utils/request.js";
 
-
 /** 获取新手任务 */
 export async function getNewbieTasks() {
     var addr = localStorage.getItem("solAddr");
@@ -20,8 +19,8 @@ export async function getOtherTasks() {
 }
 
 /** 获取用户任务系统信息 */
-export async function getUserTasksInfo(userid) {
-    return await service.get('/api/v1/user/task?user_id=' + userid);
+export async function getUserTasksInfo(addr) {
+    return await service.get('/api/v1/user/task?addr=' + addr);
 }
 
 /** 获取用户任务完成情况 */
@@ -31,6 +30,18 @@ export async function checkTaskIsComplete(userid, task_id) {
 
 /** 获取用户任务完成情况 */
 export async function getStonksTradeRes() {
-    var addr = localStorage.getItem("solAddr");
+    let addr = localStorage.getItem("solAddr");
     return await service.get('/api/v1/task/stonks/trade?sol_address=' + addr);
 }
+
+/** 完成任务api */
+export async function completeTask(task_id) {
+    let addr = localStorage.getItem("solAddr");
+    return await service.get('/api/v1/task/finish?addr=' + addr + "&task_id="+ task_id);
+}
+
+/** 获取积分榜 */
+export async function getRankBoard() {
+    return await service.get('/api/v1/task/rankbord');
+}
+

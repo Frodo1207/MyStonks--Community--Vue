@@ -1,12 +1,5 @@
 <template>
   <div class="task-center-page">
-    <!-- Loading 弹窗 -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>处理中，请稍候...</p>
-      </div>
-    </div>
     <!-- 顶部横幅 -->
     <div class="task-banner">
       <div class="banner-content">
@@ -73,19 +66,19 @@
       </div>
 
       <div
-          v-for="(user, index) in leaderboard"
-          :key="user.id"
+          v-for="user in leaderboard"
+          :key="user.addr"
           class="leaderboard-item"
           :class="{ 'current-user': user.isCurrentUser }"
       >
-        <span class="rank" :class="getRankClass(index + 1)">
-          {{ index + 1 }}
-        </span>
+    <span class="rank" :class="getRankClass(user.rank)">
+      {{ user.rank }}
+    </span>
         <div class="user-info">
-          <span class="address">{{ formatAddress(user.address) }}</span>
+          <span class="address">{{ formatAddress(user.addr) }}</span>
           <span v-if="user.isCurrentUser" class="you-tag">你</span>
         </div>
-        <span class="points">{{ totalPoints }}</span>
+        <span class="points">{{ user.score }}</span>
       </div>
     </div>
   </div>
@@ -101,9 +94,11 @@ import {
   getNewbieTasks,
   getOtherTasks,
   getUserTasksInfo,
-  checkTaskIsComplete,
   getStonksTradeRes,
+  completeTask,
+  getRankBoard,
 } from "@/services/tasks.js"
+import * as taskHandlers from '@/utils/taskHandlers'
 
 const loading = ref(false)
 
@@ -111,8 +106,7 @@ const loading = ref(false)
 const completedTasks = ref(0)
 const totalPoints = ref(0)
 const currentLevel = ref(0)
-const currentUserId = ref(null)
-const currentUserName = ref('')
+const currentAddr = ref('')
 
 // 排行榜数据
 const leaderboard = ref([])
@@ -128,7 +122,7 @@ const refreshTime = ref('00:00:00')
 function updateCountdown() {
   const now = new Date()
   const tomorrow = new Date()
-  tomorrow.setHours(24, 0, 0, 0) // 设置为明天0点
+  tomorrow.setHours(24, 0, 0, 0)
   const diff = tomorrow - now
 
   const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0')
@@ -137,10 +131,12 @@ function updateCountdown() {
 
   refreshTime.value = `${hours}:${minutes}:${seconds}`
 }
-// 方法：格式化钱包地址
-const formatAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`
 
-// 方法：获取排行榜样式
+const formatAddress = (address) => {
+  if (!address) return ''
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
 const getRankClass = (rank) => {
   if (rank === 1) return 'gold'
   if (rank === 2) return 'silver'
@@ -151,128 +147,119 @@ const getRankClass = (rank) => {
 const allNewbieTasksCompleted = computed(() => {
   return newbieTasks.value.length > 0 && newbieTasks.value.every(task => task.completed)
 })
+
 watch(loading, (val) => {
-  if (val) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
+  document.body.style.overflow = val ? 'hidden' : ''
 })
+
 const handleTaskAction = async (task) => {
-  // 处理特殊动作任务
-  console.log(task)
-  if (task.special_action === 'login_popup') {
-    alert('请先登录钱包以完成该任务')
+  const addr = localStorage.getItem("solAddr")
+  if (!addr) {
+    alert('请先登录')
     return
   }
 
-  if (task.special_action === 'tg_bind_popup') {
-    alert('请先绑定TG账户以完成该任务')
-    return
-  }
+  loading.value = true
 
-  if (task.special_action === 'stonks_trade') {
-    loading.value = true; // 开始显示loading弹框
-
-    try {
-      console.log('开始执行stonks_trade操作');
-      let res = await getStonksTradeRes();
-      console.log('操作结果:', res);
-      if (res.is_trade) {
-        console.log("gooooooood")
-        alert('goood');
-      }
-      else {
-        console.log("bad")
-        alert('bad');
-      }
-      return
-    } catch (error) {
-      console.error('验证失败', error);
-
-      return
-    } finally {
-      setTimeout(() => {
-        loading.value = false;
-      }, 300);
-    }
-    return;
-  }
-  // 阻止日常和其他任务的点击，若新手任务未完成
-  const isRestrictedTask = dailyTasks.value.concat(otherTasks.value).some(t => t.id === task.id)
-  if (!allNewbieTasksCompleted.value && isRestrictedTask) {
-    alert('请先完成所有新手任务，再进行后续任务～')
-    return
-  }
-
-  // 正常校验任务是否已完成
   try {
-    const res = await checkTaskIsComplete(currentUserId.value, task.id)
-    const { completed } = res.data || {}
-    if (completed) {
-      markTaskComplete(task.id)
-    } else {
-      alert('任务尚未完成，请按照要求完成任务后再返回点击。')
+    switch (task.special_action) {
+      case 'go_tg':
+      case 'go_tg_no_reward':
+        await taskHandlers.handleGoTgTask(task, completeTask, refreshTask)
+        break
+      case 'tg_bind_popup':
+        await taskHandlers.handleTgBindTask(task, completeTask, refreshTask)
+        break
+      case 'go_x_stonks':
+        await taskHandlers.handleGoXStonksTask(task, completeTask, refreshTask)
+        break
+      case 'first_bind_wallet':
+        await taskHandlers.handleFirstBindWalletTask(task, completeTask, refreshTask)
+        break
+      case 'stonks_trade':
+        await taskHandlers.handleStonksTradeTask()
+        break
+      default:
+        const canProceed = await taskHandlers.handleDefaultTask(
+            task,
+            allNewbieTasksCompleted.value,
+            dailyTasks.value,
+            otherTasks.value
+        )
+        if (canProceed) {
+          await completeTask(task.id)
+          await refreshTask()
+        }
     }
-  } catch (err) {
-    console.error('任务完成校验失败:', err)
-    alert('检查任务失败，请稍后再试')
+  } catch (error) {
+    console.error('任务处理失败:', error)
+    alert('任务处理失败，请重试')
+  } finally {
+    loading.value = false
   }
 }
 
-const markTaskComplete = (taskId) => {
-  const update = (list) => {
-    const task = list.find(t => t.id === taskId)
-    if (task && !task.completed) {
-      task.completed = true
-      totalPoints.value += task.reward
-      completedTasks.value += 1
-    }
+const refreshTask = async () => {
+  let addr = localStorage.getItem('solAddr')
+  if (!addr) {
+    addr = ""
   }
 
-  update(newbieTasks.value)
-  update(dailyTasks.value)
-  update(otherTasks.value)
+  try {
+    if (addr !== "") {
+      const userResp = await getUserTasksInfo(addr)
+      totalPoints.value = userResp.point
+      completedTasks.value = userResp.tasks.length
+      currentAddr.value = addr // 设置当前用户地址
+    }
+
+    const [dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
+      getDailyTasks(),
+      getNewbieTasks(),
+      getOtherTasks()
+    ])
+
+    dailyTasks.value = dailyTaskResp
+    newbieTasks.value = newbieTaskResp
+    otherTasks.value = otherTasksResp
+  } catch (error) {
+    console.error('刷新任务失败:', error)
+  }
 }
 
-// 数据加载
+const refreshLeaderboard = async () => {
+  try {
+    const response = await getRankBoard()
+    const rankData = response[0].rank_items
+
+    // 获取当前用户地址
+    const currentUserAddr = localStorage.getItem('solAddr')
+
+    // 处理排行榜数据
+    leaderboard.value = rankData.map(item => ({
+      addr: item.addr,
+      rank: item.rank,
+      score: item.score,
+      isCurrentUser: item.addr === currentUserAddr
+    }))
+
+    // 设置当前用户的排名
+    const currentUser = leaderboard.value.find(item => item.isCurrentUser)
+    if (currentUser) {
+      currentLevel.value = currentUser.rank
+    }
+  } catch (error) {
+    console.error('获取排行榜失败:', error)
+  }
+}
+
 onMounted(async () => {
-  // 模拟倒计时
-  setInterval(() => {
-    updateCountdown()
-  }, 1000)
-
-  let addr = localStorage.getItem("solAddr")
-
-  let userResp = await getUserTasksInfo(addr)
-  console.log(userResp)
-
-  totalPoints.value = userResp.point
-
-  console.log(totalPoints)
-
-  const [dailyTaskResp, newbieTaskResp, otherTasksResp] = await Promise.all([
-    getDailyTasks(),
-    getNewbieTasks(),
-    getOtherTasks()
-  ])
-
-  console.log(dailyTaskResp)
-  console.log(newbieTaskResp)
-  console.log(otherTasksResp)
-
-  dailyTasks.value = dailyTaskResp
-  newbieTasks.value = newbieTaskResp
-  otherTasks.value = otherTasksResp
-
-  leaderboard.value = [
-    { id: 1, address: '0x3f5C...', points: 12500, isCurrentUser: false },
-    { id: 2, address: '0xDec8...', points: 9800, isCurrentUser: false },
-  ]
-
-
+  setInterval(updateCountdown, 1000)
+  await refreshTask()
+  await refreshLeaderboard()
 })
 </script>
+
 <style scoped>
 .task-center-page {
   max-width: 1200px;

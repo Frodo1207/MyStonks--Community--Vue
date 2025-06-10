@@ -15,16 +15,12 @@
         <div class="meta-item">
           <span class="meta-label">时间</span>
           <span class="meta-value">
-<!--            {{ formatDate(activity.startTime) }} - {{ formatDate(activity.endTime) }}-->
+            {{ formatDate(activity.startTime) }} - {{ formatDate(activity.endTime) }}
           </span>
         </div>
         <div class="meta-item">
           <span class="meta-label">地点</span>
           <span class="meta-value">{{ activity.location }}</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">主办方</span>
-          <span class="meta-value">{{ activity.organizer }}</span>
         </div>
       </div>
 
@@ -39,8 +35,6 @@
 </template>
 
 <script setup>
-// import { formatDate } from '@/utils/formatDate'
-
 const props = defineProps({
   activity: {
     type: Object,
@@ -48,9 +42,37 @@ const props = defineProps({
   }
 })
 
+const formatDate = (dateString) => {
+  if (!dateString) return '待定'
+
+  try {
+    const date = new Date(dateString)
+
+    if (isNaN(date.getTime())) {
+      return '日期格式错误'
+    }
+
+    // 添加时区选项，强制使用UTC
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC'  // 关键添加
+    }
+
+    return new Intl.DateTimeFormat('zh-CN', options).format(date)
+  } catch (error) {
+    console.error('日期格式化错误:', error)
+    return dateString
+  }
+}
+
 const joinActivity = () => {
-  // 这里可以添加 Web3 交互逻辑，比如连接钱包、签名等
   console.log('Joining activity:', props.activity.id)
+  // 这里可以添加 Web3 交互逻辑
 }
 </script>
 
@@ -61,6 +83,7 @@ const joinActivity = () => {
   background: #1E1E1E;
   border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .cover-container {
@@ -86,6 +109,11 @@ const joinActivity = () => {
   font-size: 16px;
   display: flex;
   align-items: center;
+  gap: 4px;
+}
+
+.heat-icon {
+  font-size: 18px;
 }
 
 .content {
@@ -95,10 +123,14 @@ const joinActivity = () => {
 .title {
   color: white;
   margin: 0 0 20px;
+  font-size: 28px;
 }
 
 .meta {
   margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 8px;
 }
 
 .meta-item {
@@ -106,13 +138,19 @@ const joinActivity = () => {
   margin-bottom: 10px;
 }
 
+.meta-item:last-child {
+  margin-bottom: 0;
+}
+
 .meta-label {
   color: #888;
   min-width: 80px;
+  font-weight: 500;
 }
 
 .meta-value {
   color: white;
+  flex: 1;
 }
 
 .description {
@@ -122,11 +160,13 @@ const joinActivity = () => {
 .description h3 {
   color: white;
   margin-bottom: 10px;
+  font-size: 20px;
 }
 
 .description p {
   color: #ccc;
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .join-button {
@@ -137,10 +177,18 @@ const joinActivity = () => {
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
+  width: 100%;
+  font-weight: 600;
 }
 
 .join-button:hover {
   background: #7C4DFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(98, 0, 238, 0.3);
+}
+
+.join-button:active {
+  transform: translateY(0);
 }
 </style>

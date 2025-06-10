@@ -25,3 +25,7 @@ export function getRandom(){
 export function refreshToken(){
     return request.get('/v1/auth/refresh');
 }
+
+export function bindTg(data) {
+    return request.post('/api/v1/auth/bindtg', data);
+}

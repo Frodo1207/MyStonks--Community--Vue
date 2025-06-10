@@ -33,7 +33,31 @@ const navigateToDetail = () => {
 }
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString()
+  if (!dateString) return '待定'
+
+  try {
+    const date = new Date(dateString)
+
+    if (isNaN(date.getTime())) {
+      return '日期格式错误'
+    }
+
+    // 添加时区选项，强制使用UTC
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC'  // 关键添加
+    }
+
+    return new Intl.DateTimeFormat('zh-CN', options).format(date)
+  } catch (error) {
+    console.error('日期格式化错误:', error)
+    return dateString
+  }
 }
 </script>
 

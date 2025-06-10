@@ -37,12 +37,25 @@
           <path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" />
         </svg>
       </button>
+
+      <div ref="telegram" class="test"></div>
+      <bind-tg-card mode="callback" telegram-login="mystonksdaotg_bot" @callback="cb" />
       <div id="telegram-login-button"></div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue';
+import BindTgCard from '@/components/BindTGCard.vue';
+
+const cb = (user) => {
+  console.log(11111111)
+  console.log(user)
+}
+onMounted(() => {
+});
+
 defineProps({
   badgeText: {
     type: String,

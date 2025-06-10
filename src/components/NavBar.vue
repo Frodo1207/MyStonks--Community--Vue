@@ -22,9 +22,9 @@
         <div v-if="connected" class="wallet-connected" @click="openModal">
           <span class="wallet-address">{{ truncatedAddress }}</span>
           <span class="connected-indicator"></span>
-          <button class="disconnect-btn" @click="disconnectWallet">断开</button>
         </div>
-        <div v-else class="connect-btn" @click="openModal">connect</div>
+        <div v-else class="connect-btn" @click="openModal">Connect</div>
+
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
           <div class="hamburger" :class="{ 'active': showMobileMenu }"></div>
         </button>
@@ -49,6 +49,9 @@ const { connected, publicKey, disconnect } = useWallet();
 
 const showConnectModal = ref(false);
 const showMobileMenu = ref(false);
+const isLoggedIn = ref(false); // 新增登录状态
+const hasTelegram = ref(false); // 新增Telegram绑定状态
+const telegramUsername = ref(''); // 新增Telegram用户名
 
 const props = defineProps({
   logoPart1: {
@@ -69,25 +72,44 @@ const navLinks = ref([
   { path: '/merch', name: '社区周边' }
 ]);
 
+// 组件挂载时检查本地存储
+onMounted(() => {
+  checkLoginStatus();
+});
+
+// 检查登录状态函数
+const checkLoginStatus = () => {
+  if (!connected) {
+    clearLocalStorage();
+    return
+  }
+  const addr = localStorage.getItem("solAddr");
+  const token = localStorage.getItem("access_token");
+  const tgId = localStorage.getItem("tg_id");
+  const tgName = localStorage.getItem("tg_name");
+
+  // 如果有地址和token，则认为是已登录状态
+  if (addr && token) {
+    isLoggedIn.value = true;
+    // 检查是否绑定了Telegram
+    if (tgId && tgId !== "0") {
+      hasTelegram.value = true;
+      telegramUsername.value = tgName || "Telegram用户";
+    }
+  }
+};
+
 const walletAddress = computed(() => {
-  return publicKey.value?.toString() || '';
+  return publicKey.value?.toString() || localStorage.getItem("solAddr") || '';
 });
 
 const truncatedAddress = computed(() => {
-  if (publicKey.value) {
-    const address = publicKey.value.toString();
+  const address = walletAddress.value;
+  if (address) {
     return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
   }
   return '';
 });
-
-const disconnectWallet = async () => {
-  try {
-    await disconnect();
-  } catch (error) {
-    console.error('断开连接失败:', error);
-  }
-};
 
 const openModal = () => {
   showConnectModal.value = true;
@@ -95,6 +117,30 @@ const openModal = () => {
 
 const toggleMobileMenu = () => {
   showMobileMenu.value = !showMobileMenu.value;
+};
+
+// 断开钱包连接
+const disconnectWallet = async () => {
+  try {
+    await disconnect();
+    clearLocalStorage();
+    isLoggedIn.value = false;
+    hasTelegram.value = false;
+    telegramUsername.value = '';
+    emit('disconnect');
+  } catch (error) {
+    console.error('断开连接失败:', error);
+  }
+};
+
+// 清除本地存储
+const clearLocalStorage = () => {
+  localStorage.removeItem("solAddr");
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("tg_id");
+  localStorage.removeItem("tg_name");
+  localStorage.removeItem("tg_photo");
 };
 </script>
 

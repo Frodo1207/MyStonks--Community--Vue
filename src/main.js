@@ -33,6 +33,8 @@ import router from './router';
 import App from './App.vue';
 
 import './style.css';
+import { Buffer } from 'buffer';
+window.Buffer = Buffer;
 
 const walletOptions = {
     wallets: [
